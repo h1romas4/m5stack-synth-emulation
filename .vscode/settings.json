@@ -1,0 +1,25 @@
+{
+    "C_Cpp.intelliSenseEngine": "Tag Parser",
+    "files.associations": {
+        "array": "cpp",
+        "unordered_map": "cpp",
+        "vector": "cpp",
+        "initializer_list": "cpp",
+        "string_view": "cpp",
+        "*.ipp": "cpp",
+        "sn76496.h": "c",
+        "*.tcc": "c",
+        "streambuf": "c",
+        "istream": "cpp",
+        "optional": "cpp",
+        "ostream": "cpp",
+        "ratio": "cpp",
+        "system_error": "cpp",
+        "type_traits": "cpp",
+        "condition_variable": "cpp",
+        "future": "cpp",
+        "chrono": "c",
+        "utility": "cpp",
+        "unordered_set": "cpp"
+    }
+}
