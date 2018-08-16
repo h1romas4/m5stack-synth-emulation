@@ -30,7 +30,7 @@ flashrom.sh example.vgm   # not vgz
 make flash monitor
 ```
 
-![](https://github.com/h1romas4/m5stack-synth-emulation/blob/master/assets/connector.jpg)
+![](https://raw.githubusercontent.com/h1romas4/m5stack-synth-emulation/master/assets/m5stack-synth.jpg)
 
 Enjoy!
 
