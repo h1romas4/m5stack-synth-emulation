@@ -125,17 +125,21 @@
 //struct ym2612__ YM2612;
 
 int *SIN_TAB[SIN_LENGHT];          // SINUS TABLE (pointer on TL TABLE)
-#if ESP32_SYNTH
-int *TL_TAB;          // TOTAL LEVEL TABLE (positif and minus)
-#else
 int TL_TAB[TL_LENGHT * 2];          // TOTAL LEVEL TABLE (positif and minus)
-#endif
+#if ESP32_SYNTH
+unsigned int *ENV_TAB;                     // ENV CURVE TABLE (attack & decay)
+#else
 unsigned int ENV_TAB[2 * ENV_LENGHT + 8];  // ENV CURVE TABLE (attack & decay)
+#endif
 
 //unsigned int ATTACK_TO_DECAY[ENV_LENGHT];  // Conversion from attack to decay phase
 unsigned int DECAY_TO_ATTACK[ENV_LENGHT];  // Conversion from decay to attack phase
 
+#if ESP32_SYNTH
+unsigned int *FINC_TAB;             // Frequency step table
+#else
 unsigned int FINC_TAB[2048];        // Frequency step table
+#endif
 
 unsigned int AR_TAB[128];          // Attack rate table
 unsigned int DR_TAB[96];          // Decay rate table
@@ -143,7 +147,11 @@ unsigned int DT_TAB[8][32];          // Detune table
 unsigned int SL_TAB[16];          // Substain level table
 unsigned int NULL_RATE[32];          // Table for NULL rate
 
+#if ESP32_SYNTH
+int *LFO_ENV_TAB;                   // LFO AMS TABLE (adjusted for 11.8 dB)
+#else
 int LFO_ENV_TAB[LFO_LENGHT];        // LFO AMS TABLE (adjusted for 11.8 dB)
+#endif
 int LFO_FREQ_TAB[LFO_LENGHT];        // LFO FMS TABLE
 
 // int INTER_TAB[MAX_UPDATE_LENGHT];      // Interpolation table
@@ -1919,12 +1927,6 @@ ym2612_ *YM2612_Init(int Clock, int Rate, int Interpolation)
   // [0     -  4095] = +output  [4095  - ...] = +output overflow (fill with 0)
   // [12288 - 16383] = -output  [16384 - ...] = -output overflow (fill with 0)
 
-  #if ESP32_SYNTH
-  TL_TAB = (int *)heap_caps_malloc(0x18000, MALLOC_CAP_8BIT);
-  if(TL_TAB == NULL) printf("TL_TAB alloc error!\n");
-  memset(TL_TAB, 0x00, 0x18000);
-  #endif
-
   for(i = 0; i < TL_LENGHT; i++)
   {
     if(i >= PG_CUT_OFF)  // YM2612 cut off sound after 78 dB (14 bits output ?)
@@ -1977,6 +1979,12 @@ ym2612_ *YM2612_Init(int Clock, int Rate, int Interpolation)
 #endif
 
   // Tableau LFO (LFO wav) :
+  #if ESP32_SYNTH
+  LFO_ENV_TAB = (int *)heap_caps_malloc(LFO_LENGHT * sizeof(int), MALLOC_CAP_8BIT);
+  if(LFO_ENV_TAB == NULL) printf("LFO_ENV_TAB alloc error!\n");
+  memset(LFO_ENV_TAB, 0x00, LFO_LENGHT * sizeof(int));
+  printf("free memory %d\n", heap_caps_get_free_size(MALLOC_CAP_8BIT));
+  #endif
 
   for(i = 0; i < LFO_LENGHT; i++)
   {
@@ -2004,6 +2012,13 @@ ym2612_ *YM2612_Init(int Clock, int Rate, int Interpolation)
   // Tableau Enveloppe :
   // ENV_TAB[0] -> ENV_TAB[ENV_LENGHT - 1]        = attack curve
   // ENV_TAB[ENV_LENGHT] -> ENV_TAB[2 * ENV_LENGHT - 1]  = decay curve
+
+  #if ESP32_SYNTH
+  ENV_TAB = (unsigned int *)heap_caps_malloc((2 * ENV_LENGHT + 8) * sizeof(unsigned int), MALLOC_CAP_8BIT);
+  if(ENV_TAB == NULL) printf("ENV_TAB alloc error!\n");
+  memset(ENV_TAB, 0x00, (2 * ENV_LENGHT + 8) * sizeof(unsigned int));
+  printf("free memory %d\n", heap_caps_get_free_size(MALLOC_CAP_8BIT));
+  #endif
 
   for(i = 0; i < ENV_LENGHT; i++)
   {
@@ -2053,6 +2068,13 @@ ym2612_ *YM2612_Init(int Clock, int Rate, int Interpolation)
   SL_TAB[15] = j + ENV_DECAY;
 
   // Tableau Frequency Step
+
+  #if ESP32_SYNTH
+  FINC_TAB = (unsigned int *)heap_caps_malloc(2048 * sizeof(unsigned int), MALLOC_CAP_8BIT);
+  if(FINC_TAB == NULL) printf("FINC_TAB alloc error!\n");
+  memset(FINC_TAB, 0x00, 2048 * sizeof(unsigned int));
+  printf("free memory %d\n", heap_caps_get_free_size(MALLOC_CAP_8BIT));
+  #endif
 
   for(i = 0; i < 2048; i++)
   {

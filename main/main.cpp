@@ -136,7 +136,7 @@ void init_dac(void)
         .communication_format = static_cast<i2s_comm_format_t>(I2S_COMM_FORMAT_I2S_MSB),
         .intr_alloc_flags = 0,
         .dma_buf_count = 16,
-        .dma_buf_len = 1024,
+        .dma_buf_len = 512,
         .use_apll = false,
         .fixed_mclk = 0
     };
@@ -160,7 +160,7 @@ void setup()
 
     // Reset for NTSC Genesis/Megadrive
     SN76496_init(3579540, SAMPLING_RATE);
-    // YM2612_Init(53693100 / 7, SAMPLING_RATE, 0);
+    YM2612_Init(53693100 / 7, SAMPLING_RATE, 0);
 
     // free memory
     M5.Lcd.printf("free memory: %d byte\n\n", heap_caps_get_free_size(MALLOC_CAP_8BIT));
@@ -177,8 +177,10 @@ void loop()
     uint16_t frame_size;
     uint16_t frame_all = 0;
 
+    printf("free memory %d / %d\n", parse_max_frame() * sizeof(int16_t) * STEREO, heap_caps_get_free_size(MALLOC_CAP_8BIT));
     int16_t *buf = (int16_t *)heap_caps_malloc(parse_max_frame() * sizeof(int16_t) * STEREO, MALLOC_CAP_8BIT);
     if(buf == NULL) printf("pcm buffer alloc fail.\n");
+    printf("last free memory %d\n", heap_caps_get_free_size(MALLOC_CAP_8BIT));
 
     do {
         frame_size = parse_vgm();
