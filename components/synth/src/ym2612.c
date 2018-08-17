@@ -1983,7 +1983,6 @@ ym2612_ *YM2612_Init(int Clock, int Rate, int Interpolation)
   LFO_ENV_TAB = (int *)heap_caps_malloc(LFO_LENGHT * sizeof(int), MALLOC_CAP_8BIT);
   if(LFO_ENV_TAB == NULL) printf("LFO_ENV_TAB alloc error!\n");
   memset(LFO_ENV_TAB, 0x00, LFO_LENGHT * sizeof(int));
-  printf("free memory %d\n", heap_caps_get_free_size(MALLOC_CAP_8BIT));
   #endif
 
   for(i = 0; i < LFO_LENGHT; i++)
@@ -2017,7 +2016,6 @@ ym2612_ *YM2612_Init(int Clock, int Rate, int Interpolation)
   ENV_TAB = (unsigned int *)heap_caps_malloc((2 * ENV_LENGHT + 8) * sizeof(unsigned int), MALLOC_CAP_8BIT);
   if(ENV_TAB == NULL) printf("ENV_TAB alloc error!\n");
   memset(ENV_TAB, 0x00, (2 * ENV_LENGHT + 8) * sizeof(unsigned int));
-  printf("free memory %d\n", heap_caps_get_free_size(MALLOC_CAP_8BIT));
   #endif
 
   for(i = 0; i < ENV_LENGHT; i++)
@@ -2073,7 +2071,6 @@ ym2612_ *YM2612_Init(int Clock, int Rate, int Interpolation)
   FINC_TAB = (unsigned int *)heap_caps_malloc(2048 * sizeof(unsigned int), MALLOC_CAP_8BIT);
   if(FINC_TAB == NULL) printf("FINC_TAB alloc error!\n");
   memset(FINC_TAB, 0x00, 2048 * sizeof(unsigned int));
-  printf("free memory %d\n", heap_caps_get_free_size(MALLOC_CAP_8BIT));
   #endif
 
   for(i = 0; i < 2048; i++)
