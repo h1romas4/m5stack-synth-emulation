@@ -12,12 +12,12 @@ extern "C" {
 #define STEREO 2
 #define MONO 0
 
-#define VGM_DATA_POS 0x40;
+#define VGM_DATA_POS 0x80;
 
 ym2612_ *ym2162;
 
 uint8_t *vgm;
-uint16_t vgmpos;
+uint32_t vgmpos;
 bool vgmend = false;
 bool play = false;
 
@@ -210,7 +210,7 @@ void loop()
         memset(buflr[0], 0x00, frame_size * sizeof(int16_t));
         memset(buflr[1], 0x00, frame_size * sizeof(int16_t));
         YM2612_Update(ym2162, (int **)buflr, frame_size);
-        SN76496Update((short *)buflr[0], frame_size, MONO);
+        // SN76496Update((short *)buflr[0], frame_size, MONO);
         if(frame_size != 0) {
             for(int16_t i = 0; i < frame_size; i++) {
                 uint32_t d[2];
