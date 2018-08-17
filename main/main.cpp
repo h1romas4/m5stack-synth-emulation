@@ -165,7 +165,7 @@ void setup()
 
     // Initialize
     M5.Lcd.fillScreen(BLACK);
-    M5.Lcd.print("PSG emulation by SN76496\n\n");
+    M5.Lcd.print("MEGADRIVE/GENESIS sound emulation by SN76496/YM2612.\n\n");
 
     // Load vgm data
     vgm = get_vgmdata();
@@ -173,9 +173,6 @@ void setup()
     // Reset for NTSC Genesis/Megadrive
     SN76496_init(3579540, SAMPLING_RATE);
     ym2162 = YM2612_Init(53693100 / 7, SAMPLING_RATE, 0);
-
-    // free memory
-    M5.Lcd.printf("free memory: %d byte\n\n", heap_caps_get_free_size(MALLOC_CAP_8BIT));
 
     // // Init DAC
     init_dac();
@@ -204,6 +201,10 @@ void loop()
     if(buflr[1] == NULL) printf("pcm buffer1 alloc fail.\n");
     printf("last free memory %d\n", heap_caps_get_free_size(MALLOC_CAP_8BIT));
 
+    // free memory
+    M5.Lcd.printf("frame max size: %d\n", buffer_max_size);
+    M5.Lcd.printf("free memory: %d byte\n", heap_caps_get_free_size(MALLOC_CAP_8BIT));
+
     do {
         frame_size = parse_vgm();
         memset(buflr[0], 0x00, frame_size * sizeof(int16_t));
@@ -226,7 +227,7 @@ void loop()
     free(buflr[1]);
     free(buflr);
 
-    M5.Lcd.printf("total frame: %d %d\n", frame_all, frame_all / SAMPLING_RATE);
+    M5.Lcd.printf("\ntotal frame: %d %d\n", frame_all, frame_all / SAMPLING_RATE);
 
     i2s_driver_uninstall((i2s_port_t)i2s_num); //stop & destroy i2s driver
 
