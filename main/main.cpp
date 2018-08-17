@@ -10,11 +10,14 @@ extern "C" {
 
 #define SAMPLING_RATE 44100
 #define STEREO 2
+#define MONO 0
+
 #define VGM_DATA_POS 0x40;
+
+ym2612_ *ym2162;
 
 uint8_t *vgm;
 uint16_t vgmpos;
-uint8_t command;
 bool vgmend = false;
 bool play = false;
 
@@ -55,13 +58,22 @@ uint16_t get_vgm_ui16()
 
 uint16_t parse_vgm()
 {
+    uint8_t command;
     uint16_t wait = 0;
+    uint8_t reg;
     uint8_t dat;
+
     command = get_vgm_ui8();
     switch (command) {
         case 0x50:
             dat = get_vgm_ui8();
             if(play) SN76496Write(dat);
+            break;
+        case 0x52:
+        case 0x53:
+            reg = get_vgm_ui8();
+            dat = get_vgm_ui8();
+            if(play) YM2612_Write(ym2162, reg, dat);
             break;
         case 0x61:
             wait = get_vgm_ui16();
@@ -160,7 +172,7 @@ void setup()
 
     // Reset for NTSC Genesis/Megadrive
     SN76496_init(3579540, SAMPLING_RATE);
-    YM2612_Init(53693100 / 7, SAMPLING_RATE, 0);
+    ym2162 = YM2612_Init(53693100 / 7, SAMPLING_RATE, 0);
 
     // free memory
     M5.Lcd.printf("free memory: %d byte\n\n", heap_caps_get_free_size(MALLOC_CAP_8BIT));
@@ -175,25 +187,44 @@ void loop()
     size_t bytes_written = 0;
 
     uint16_t frame_size;
-    uint16_t frame_all = 0;
+    uint32_t frame_all = 0;
 
-    printf("free memory %d / %d\n", parse_max_frame() * sizeof(int16_t) * STEREO, heap_caps_get_free_size(MALLOC_CAP_8BIT));
-    int16_t *buf = (int16_t *)heap_caps_malloc(parse_max_frame() * sizeof(int16_t) * STEREO, MALLOC_CAP_8BIT);
-    if(buf == NULL) printf("pcm buffer alloc fail.\n");
+    uint16_t buffer_max_size;
+    int16_t **buflr;
+
+    // parse max frame
+    buffer_max_size = parse_max_frame() * sizeof(int16_t);
+    printf("buffer_max_size %d\n", buffer_max_size);
+
+    // malloc sound buffer
+    buflr = (int16_t **)malloc(sizeof(int16_t *) * STEREO);
+    buflr[0] = (int16_t *)heap_caps_malloc(buffer_max_size, MALLOC_CAP_8BIT);
+    if(buflr[0] == NULL) printf("pcm buffer0 alloc fail.\n");
+    buflr[1] = (int16_t *)heap_caps_malloc(buffer_max_size, MALLOC_CAP_8BIT);
+    if(buflr[1] == NULL) printf("pcm buffer1 alloc fail.\n");
     printf("last free memory %d\n", heap_caps_get_free_size(MALLOC_CAP_8BIT));
 
     do {
         frame_size = parse_vgm();
-        memset(buf, 0x00, frame_size * sizeof(int16_t) * STEREO);
-        SN76496Update(buf, frame_size, STEREO);
+        memset(buflr[0], 0x00, frame_size * sizeof(int16_t));
+        memset(buflr[1], 0x00, frame_size * sizeof(int16_t));
+        YM2612_Update(ym2162, (int **)buflr, frame_size);
+        SN76496Update((short *)buflr[0], frame_size, MONO);
         if(frame_size != 0) {
-            i2s_write((i2s_port_t)i2s_num, buf, frame_size * sizeof(int16_t) * STEREO, &bytes_written, portMAX_DELAY);
-            // printf("framesize %d, bytes_written %d\n", frame_size * sizeof(short) * 2, bytes_written);
+            for(int16_t i = 0; i < frame_size; i++) {
+                uint32_t d[2];
+                d[0] = buflr[0][i];
+                d[1] = buflr[1][i];
+                i2s_write((i2s_port_t)i2s_num, d, sizeof(int16_t) * STEREO, &bytes_written, portMAX_DELAY);
+                // printf("bytes_written %d\n", bytes_written);
+            }
         }
         frame_all += frame_size;
     } while(!vgmend);
 
-    free(buf);
+    free(buflr[0]);
+    free(buflr[1]);
+    free(buflr);
 
     M5.Lcd.printf("total frame: %d %d\n", frame_all, frame_all / SAMPLING_RATE);
 
