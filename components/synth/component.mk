@@ -8,5 +8,4 @@ COMPONENT_ADD_INCLUDEDIRS := src
 
 CFLAGS += -Wno-unused-result
 CFLAGS += -Wno-unused-function
-CFLAGS += -DESP32_GENSOUND=1
-CFLAGS += -DBUILD_YM2612
+CFLAGS += -DESP32_SYNTH=1

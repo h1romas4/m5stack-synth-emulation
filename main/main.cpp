@@ -10,11 +10,13 @@ extern "C" {
 
 #define SAMPLING_RATE 44100
 #define STEREO 2
+#define VGM_DATA_POS 0x40;
 
 uint8_t *vgm;
-uint16_t vgmpos = 0x40;
+uint16_t vgmpos;
 uint8_t command;
 bool vgmend = false;
+bool play = false;
 
 uint8_t *get_vgmdata()
 {
@@ -54,10 +56,12 @@ uint16_t get_vgm_ui16()
 uint16_t parse_vgm()
 {
     uint16_t wait = 0;
+    uint8_t dat;
     command = get_vgm_ui8();
     switch (command) {
         case 0x50:
-            SN76496Write(get_vgm_ui8());
+            dat = get_vgm_ui8();
+            if(play) SN76496Write(dat);
             break;
         case 0x61:
             wait = get_vgm_ui16();
@@ -96,6 +100,28 @@ uint16_t parse_vgm()
     }
 
 	return wait;
+}
+
+uint16_t parse_max_frame()
+{
+    uint16_t frame_size;
+    uint16_t frame_max_size = 0;
+
+    play = false;
+    vgmpos = VGM_DATA_POS;
+
+    do {
+        frame_size = parse_vgm();
+        if(frame_max_size < frame_size) {
+            frame_max_size = frame_size;
+        }
+    } while(!vgmend);
+
+    play = true;
+    vgmend = false;
+    vgmpos = VGM_DATA_POS;
+
+    return frame_max_size;
 }
 
 static const i2s_port_t i2s_num = I2S_NUM_0; // i2s port number
@@ -146,24 +172,26 @@ void setup()
 // The loop routine runs over and over again forever
 void loop()
 {
-    TickType_t delay = 50 / portTICK_PERIOD_MS;
     size_t bytes_written = 0;
 
     uint16_t frame_size;
     uint16_t frame_all = 0;
-    int16_t *buf;
+
+    int16_t *buf = (int16_t *)heap_caps_malloc(parse_max_frame() * sizeof(int16_t) * STEREO, MALLOC_CAP_8BIT);
+    if(buf == NULL) printf("pcm buffer alloc fail.\n");
+
     do {
         frame_size = parse_vgm();
-        buf = (int16_t *)heap_caps_malloc(frame_size * sizeof(int16_t) * STEREO, MALLOC_CAP_8BIT);
         memset(buf, 0x00, frame_size * sizeof(int16_t) * STEREO);
         SN76496Update(buf, frame_size, STEREO);
         if(frame_size != 0) {
-            i2s_write((i2s_port_t)i2s_num, buf, frame_size * sizeof(int16_t) * STEREO, &bytes_written, delay);
+            i2s_write((i2s_port_t)i2s_num, buf, frame_size * sizeof(int16_t) * STEREO, &bytes_written, portMAX_DELAY);
             // printf("framesize %d, bytes_written %d\n", frame_size * sizeof(short) * 2, bytes_written);
         }
-        free(buf);
         frame_all += frame_size;
     } while(!vgmend);
+
+    free(buf);
 
     M5.Lcd.printf("total frame: %d %d\n", frame_all, frame_all / SAMPLING_RATE);
 
