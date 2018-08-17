@@ -87,23 +87,17 @@ uint16_t parse_vgm()
         case 0x66:
             vgmend = true;
             break;
-        case 0x70:
-        case 0x71:
-        case 0x72:
-        case 0x73:
-        case 0x74:
-        case 0x75:
-        case 0x76:
-        case 0x77:
-        case 0x78:
-        case 0x79:
-        case 0x7A:
-        case 0x7B:
-        case 0x7C:
-        case 0x7D:
-        case 0x7E:
-        case 0x7F:
+        case 0x70: case 0x71: case 0x72: case 0x73: case 0x74: case 0x75: case 0x76: case 0x77:
+        case 0x78: case 0x79: case 0x7a: case 0x7b: case 0x7c: case 0x7d: case 0x7e: case 0x7f:
             wait = (command & 0x0f) + 1;
+            break;
+        case 0x80: case 0x81: case 0x82: case 0x83: case 0x84: case 0x85: case 0x86: case 0x87:
+        case 0x88: case 0x89: case 0x8a: case 0x8b: case 0x8c: case 0x8d: case 0x8e: case 0x8f:
+            printf("PCM not implement");
+            break;
+        case 0xe0:
+            printf("PCM not implement");
+            get_vgm_ui8(); get_vgm_ui8(); get_vgm_ui8(); get_vgm_ui8();
             break;
         default:
             printf("unknown cmd at 0x%x: 0x%x\n", vgmpos, vgm[vgmpos]);
@@ -172,7 +166,9 @@ void setup()
 
     // Reset for NTSC Genesis/Megadrive
     SN76496_init(3579540, SAMPLING_RATE);
-    ym2162 = YM2612_Init(53693100 / 7, SAMPLING_RATE, 0);
+    // ym2162 = YM2612_Init(53693100 / 7, SAMPLING_RATE, 0);
+    // for testing
+    ym2162 = YM2612_Init(8000000, SAMPLING_RATE, 0);
 
     // // Init DAC
     init_dac();
@@ -210,7 +206,7 @@ void loop()
         memset(buflr[0], 0x00, frame_size * sizeof(int16_t));
         memset(buflr[1], 0x00, frame_size * sizeof(int16_t));
         YM2612_Update(ym2162, (int **)buflr, frame_size);
-        // SN76496Update((short *)buflr[0], frame_size, MONO);
+        SN76496Update((short *)buflr[0], frame_size, MONO);
         if(frame_size != 0) {
             for(int16_t i = 0; i < frame_size; i++) {
                 uint32_t d[2];
@@ -226,6 +222,8 @@ void loop()
     free(buflr[0]);
     free(buflr[1]);
     free(buflr);
+
+    YM2612_End(ym2162);
 
     M5.Lcd.printf("\ntotal frame: %d %d\n", frame_all, frame_all / SAMPLING_RATE);
 
