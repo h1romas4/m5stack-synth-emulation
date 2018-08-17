@@ -5,131 +5,89 @@
 #include "driver/i2s.h"
 extern "C" {
 #include "sn76496.h"
+#include "ym2612.h"
 }
 
 #define SAMPLING_RATE 44100
+#define STEREO 2
 
-byte *vgm;
-int vgmpos = 0x40;
+uint8_t *vgm;
+uint16_t vgmpos = 0x40;
+uint8_t command;
 bool vgmend = false;
 
-byte *get_vgmdata() {
-    byte* data;
+uint8_t *get_vgmdata()
+{
+    uint8_t* data;
     const esp_partition_t* part;
     spi_flash_mmap_handle_t hrom;
     esp_err_t err;
- 
+
     nvs_flash_init();
 
-    part=esp_partition_find_first(ESP_PARTITION_TYPE_DATA, ESP_PARTITION_SUBTYPE_DATA_PHY, NULL);
-    if (part==0) {
-        M5.Lcd.print("Couldn't find vgm part!\n");
+    part = esp_partition_find_first(ESP_PARTITION_TYPE_DATA, ESP_PARTITION_SUBTYPE_DATA_PHY, NULL);
+    if (part == 0) {
+        printf("Couldn't find vgm part!\n");
     }
 
-    err=esp_partition_mmap(part, 0, 0x1EF000, SPI_FLASH_MMAP_DATA, (const void**)&data, &hrom);
-    if (err!=ESP_OK) {
-        M5.Lcd.print("Couldn't map vgm part!\n");
+    err = esp_partition_mmap(part, 0, 0x1EF000, SPI_FLASH_MMAP_DATA, (const void**)&data, &hrom);
+    if (err != ESP_OK) {
+        printf("Couldn't map vgm part!\n");
     }
-    M5.Lcd.printf("read vgm data @%p\n", data);
+    printf("read vgm data @%p\n", data);
 
-    return (byte*)data;
+    return (uint8_t *)data;
+}
+
+uint8_t get_vgm_ui8()
+{
+    uint8_t ret = vgm[vgmpos];
+    vgmpos++;
+    return ret;
+}
+
+uint16_t get_vgm_ui16()
+{
+    return get_vgm_ui8() + (get_vgm_ui8() << 8);
 }
 
 uint16_t parse_vgm()
 {
-    int wait = 0;
-    switch (vgm[vgmpos]) {
+    uint16_t wait = 0;
+    command = get_vgm_ui8();
+    switch (command) {
         case 0x50:
-            vgmpos++;
-            SN76496Write(vgm[vgmpos]);
-            vgmpos++;
+            SN76496Write(get_vgm_ui8());
             break;
         case 0x61:
-            vgmpos++;
-            wait = (vgm[vgmpos+1] << 8) + vgm[vgmpos];
-            vgmpos += 2;
+            wait = get_vgm_ui16();
             break;
         case 0x62:
-            vgmpos++;
             wait = 735;
             break;
         case 0x63:
-            vgmpos++;
             wait = 882;
             break;
         case 0x66:
-            vgmpos++;
             vgmend = true;
             break;
-        case 0x4f:
-            vgmpos += 2;
-            break;
-        case 0x51:
-            vgmpos += 3;
-            break;
         case 0x70:
-            vgmpos++;
-            wait = 1;
-            break;
         case 0x71:
-            vgmpos++;
-            wait = 2;
-            break;
         case 0x72:
-            vgmpos++;
-            wait = 3;
-            break;
         case 0x73:
-            vgmpos++;
-            wait = 4;
-            break;
         case 0x74:
-            vgmpos++;
-            wait = 5;
-            break;
         case 0x75:
-            vgmpos++;
-            wait = 6;
-            break;
         case 0x76:
-            vgmpos++;
-            wait = 7;
-            break;
         case 0x77:
-            vgmpos++;
-            wait = 8;
-            break;
         case 0x78:
-            vgmpos++;
-            wait = 9;
-            break;
         case 0x79:
-            vgmpos++;
-            wait = 10;
-            break;
         case 0x7A:
-            vgmpos++;
-            wait = 11;
-            break;
         case 0x7B:
-            vgmpos++;
-            wait = 12;
-            break;
         case 0x7C:
-            vgmpos++;
-            wait = 13;
-            break;
         case 0x7D:
-            vgmpos++;
-            wait = 14;
-            break;
         case 0x7E:
-            vgmpos++;
-            wait = 15;
-            break;
         case 0x7F:
-            vgmpos++;
-            wait = 16;
+            wait = (command & 0x0f) + 1;
             break;
         default:
             printf("unknown cmd at 0x%x: 0x%x\n", vgmpos, vgm[vgmpos]);
@@ -142,7 +100,8 @@ uint16_t parse_vgm()
 
 static const i2s_port_t i2s_num = I2S_NUM_0; // i2s port number
 
-void init_dac(void) {
+void init_dac(void)
+{
     i2s_config_t i2s_config = {
         .mode = static_cast<i2s_mode_t>(I2S_MODE_MASTER | I2S_MODE_TX | I2S_MODE_DAC_BUILT_IN),
         .sample_rate = SAMPLING_RATE,
@@ -175,14 +134,13 @@ void setup()
 
     // Reset for NTSC Genesis/Megadrive
     SN76496_init(3579540, SAMPLING_RATE);
+    // YM2612_Init(53693100 / 7, SAMPLING_RATE, 0);
 
     // free memory
     M5.Lcd.printf("free memory: %d byte\n\n", heap_caps_get_free_size(MALLOC_CAP_8BIT));
 
     // // Init DAC
     init_dac();
-
-    // LCD display
 }
 
 // The loop routine runs over and over again forever
@@ -191,22 +149,16 @@ void loop()
     TickType_t delay = 50 / portTICK_PERIOD_MS;
     size_t bytes_written = 0;
 
-    int frame_size;
-    int frame_all = 0;
-    short csize = 0;
-    short bsize = 0;
-    short *buf;
+    uint16_t frame_size;
+    uint16_t frame_all = 0;
+    int16_t *buf;
     do {
         frame_size = parse_vgm();
-        buf = (short *)heap_caps_malloc(frame_size * sizeof(short) * 2, MALLOC_CAP_8BIT);
-        memset(buf, 0x00, frame_size * sizeof(short) * 2);
-        SN76496Update(buf, frame_size, 1);
+        buf = (int16_t *)heap_caps_malloc(frame_size * sizeof(int16_t) * STEREO, MALLOC_CAP_8BIT);
+        memset(buf, 0x00, frame_size * sizeof(int16_t) * STEREO);
+        SN76496Update(buf, frame_size, STEREO);
         if(frame_size != 0) {
-            i2s_write((i2s_port_t)i2s_num, buf, frame_size * sizeof(short) * 2, &bytes_written, delay);
-            csize = (unsigned short)buf[0] / 128;
-            M5.Lcd.fillCircle(320 / 2, 240 / 2, bsize, BLACK);
-            M5.Lcd.fillCircle(320 / 2, 240 / 2, csize, GREENYELLOW);
-            bsize = csize;
+            i2s_write((i2s_port_t)i2s_num, buf, frame_size * sizeof(int16_t) * STEREO, &bytes_written, delay);
             // printf("framesize %d, bytes_written %d\n", frame_size * sizeof(short) * 2, bytes_written);
         }
         free(buf);
