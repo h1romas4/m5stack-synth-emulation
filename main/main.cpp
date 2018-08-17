@@ -73,7 +73,10 @@ uint16_t parse_vgm()
         case 0x53:
             reg = get_vgm_ui8();
             dat = get_vgm_ui8();
-            if(play) YM2612_Write(ym2162, reg, dat);
+            if(play) {
+                YM2612_Write(ym2162, 0, reg);
+                YM2612_Write(ym2162, 1, dat);
+            }
             break;
         case 0x61:
             wait = get_vgm_ui16();
