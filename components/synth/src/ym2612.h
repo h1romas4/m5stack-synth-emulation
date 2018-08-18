@@ -126,8 +126,8 @@ int YM2612_End(ym2612_ *YM2612);
 int YM2612_Reset(ym2612_ *YM2612);
 int YM2612_Read(ym2612_ *YM2612);
 int YM2612_Write(ym2612_ *YM2612, unsigned char adr, unsigned char data);
-void YM2612_ClearBuffer(int **buffer, int length);
-void YM2612_Update(ym2612_ *YM2612, int **buf, int length);
+void YM2612_ClearBuffer(int16_t **buffer, int length);
+void YM2612_Update(ym2612_ *YM2612, int16_t **buf, int length);
 /*int YM2612_Save(ym2612_ *YM2612, unsigned char SAVE[0x200]);
 int YM2612_Restore(ym2612_ *YM2612, unsigned char SAVE[0x200]);*/
 
@@ -138,47 +138,47 @@ void YM2612_SetOptions(int Flags);
 
 /* Gens */
 
-void YM2612_DacAndTimers_Update(ym2612_ *YM2612, int **buffer, int length);
+void YM2612_DacAndTimers_Update(ym2612_ *YM2612, int16_t **buffer, int length);
 void YM2612_Special_Update(ym2612_ *YM2612);
 
 /* end */
 
 // used for foward...
-void Update_Chan_Algo0(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght);
-void Update_Chan_Algo1(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght);
-void Update_Chan_Algo2(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght);
-void Update_Chan_Algo3(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght);
-void Update_Chan_Algo4(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght);
-void Update_Chan_Algo5(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght);
-void Update_Chan_Algo6(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght);
-void Update_Chan_Algo7(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght);
+void Update_Chan_Algo0(ym2612_ *YM2612, channel_ *CH, int16_t **buf, int lenght);
+void Update_Chan_Algo1(ym2612_ *YM2612, channel_ *CH, int16_t **buf, int lenght);
+void Update_Chan_Algo2(ym2612_ *YM2612, channel_ *CH, int16_t **buf, int lenght);
+void Update_Chan_Algo3(ym2612_ *YM2612, channel_ *CH, int16_t **buf, int lenght);
+void Update_Chan_Algo4(ym2612_ *YM2612, channel_ *CH, int16_t **buf, int lenght);
+void Update_Chan_Algo5(ym2612_ *YM2612, channel_ *CH, int16_t **buf, int lenght);
+void Update_Chan_Algo6(ym2612_ *YM2612, channel_ *CH, int16_t **buf, int lenght);
+void Update_Chan_Algo7(ym2612_ *YM2612, channel_ *CH, int16_t **buf, int lenght);
 
-void Update_Chan_Algo0_LFO(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght);
-void Update_Chan_Algo1_LFO(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght);
-void Update_Chan_Algo2_LFO(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght);
-void Update_Chan_Algo3_LFO(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght);
-void Update_Chan_Algo4_LFO(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght);
-void Update_Chan_Algo5_LFO(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght);
-void Update_Chan_Algo6_LFO(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght);
-void Update_Chan_Algo7_LFO(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght);
+void Update_Chan_Algo0_LFO(ym2612_ *YM2612, channel_ *CH, int16_t **buf, int lenght);
+void Update_Chan_Algo1_LFO(ym2612_ *YM2612, channel_ *CH, int16_t **buf, int lenght);
+void Update_Chan_Algo2_LFO(ym2612_ *YM2612, channel_ *CH, int16_t **buf, int lenght);
+void Update_Chan_Algo3_LFO(ym2612_ *YM2612, channel_ *CH, int16_t **buf, int lenght);
+void Update_Chan_Algo4_LFO(ym2612_ *YM2612, channel_ *CH, int16_t **buf, int lenght);
+void Update_Chan_Algo5_LFO(ym2612_ *YM2612, channel_ *CH, int16_t **buf, int lenght);
+void Update_Chan_Algo6_LFO(ym2612_ *YM2612, channel_ *CH, int16_t **buf, int lenght);
+void Update_Chan_Algo7_LFO(ym2612_ *YM2612, channel_ *CH, int16_t **buf, int lenght);
 
-void Update_Chan_Algo0_Int(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght);
-void Update_Chan_Algo1_Int(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght);
-void Update_Chan_Algo2_Int(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght);
-void Update_Chan_Algo3_Int(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght);
-void Update_Chan_Algo4_Int(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght);
-void Update_Chan_Algo5_Int(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght);
-void Update_Chan_Algo6_Int(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght);
-void Update_Chan_Algo7_Int(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght);
+void Update_Chan_Algo0_Int(ym2612_ *YM2612, channel_ *CH, int16_t **buf, int lenght);
+void Update_Chan_Algo1_Int(ym2612_ *YM2612, channel_ *CH, int16_t **buf, int lenght);
+void Update_Chan_Algo2_Int(ym2612_ *YM2612, channel_ *CH, int16_t **buf, int lenght);
+void Update_Chan_Algo3_Int(ym2612_ *YM2612, channel_ *CH, int16_t **buf, int lenght);
+void Update_Chan_Algo4_Int(ym2612_ *YM2612, channel_ *CH, int16_t **buf, int lenght);
+void Update_Chan_Algo5_Int(ym2612_ *YM2612, channel_ *CH, int16_t **buf, int lenght);
+void Update_Chan_Algo6_Int(ym2612_ *YM2612, channel_ *CH, int16_t **buf, int lenght);
+void Update_Chan_Algo7_Int(ym2612_ *YM2612, channel_ *CH, int16_t **buf, int lenght);
 
-void Update_Chan_Algo0_LFO_Int(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght);
-void Update_Chan_Algo1_LFO_Int(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght);
-void Update_Chan_Algo2_LFO_Int(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght);
-void Update_Chan_Algo3_LFO_Int(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght);
-void Update_Chan_Algo4_LFO_Int(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght);
-void Update_Chan_Algo5_LFO_Int(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght);
-void Update_Chan_Algo6_LFO_Int(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght);
-void Update_Chan_Algo7_LFO_Int(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght);
+void Update_Chan_Algo0_LFO_Int(ym2612_ *YM2612, channel_ *CH, int16_t **buf, int lenght);
+void Update_Chan_Algo1_LFO_Int(ym2612_ *YM2612, channel_ *CH, int16_t **buf, int lenght);
+void Update_Chan_Algo2_LFO_Int(ym2612_ *YM2612, channel_ *CH, int16_t **buf, int lenght);
+void Update_Chan_Algo3_LFO_Int(ym2612_ *YM2612, channel_ *CH, int16_t **buf, int lenght);
+void Update_Chan_Algo4_LFO_Int(ym2612_ *YM2612, channel_ *CH, int16_t **buf, int lenght);
+void Update_Chan_Algo5_LFO_Int(ym2612_ *YM2612, channel_ *CH, int16_t **buf, int lenght);
+void Update_Chan_Algo6_LFO_Int(ym2612_ *YM2612, channel_ *CH, int16_t **buf, int lenght);
+void Update_Chan_Algo7_LFO_Int(ym2612_ *YM2612, channel_ *CH, int16_t **buf, int lenght);
 
 // used for foward...
 void Env_Attack_Next(slot_ *SL);

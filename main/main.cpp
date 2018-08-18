@@ -208,7 +208,7 @@ void loop()
         frame_size = parse_vgm();
         memset(buflr[0], 0x00, frame_size * sizeof(int16_t));
         memset(buflr[1], 0x00, frame_size * sizeof(int16_t));
-        YM2612_Update(ym2162, (int **)buflr, frame_size);
+        YM2612_Update(ym2162, buflr, frame_size);
         SN76496Update((short *)buflr[0], frame_size, MONO);
         if(frame_size != 0) {
             for(int16_t i = 0; i < frame_size; i++) {

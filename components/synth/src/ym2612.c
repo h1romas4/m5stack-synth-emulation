@@ -25,12 +25,12 @@
 #include <stdio.h>
 #include <math.h>
 #include <string.h> // for memset()
-#include "mamedef.h"	// for correct INLINE macro
-#include "ym2612.h"
-
+#include <stdint.h>
 #if ESP32_SYNTH
 #include <esp_heap_caps.h>
 #endif
+#include "mamedef.h"	// for correct INLINE macro
+#include "ym2612.h"
 
 #ifdef __GNUC__
 #pragma GCC diagnostic ignored "-Wparentheses"
@@ -158,7 +158,7 @@ int LFO_FREQ_TAB[LFO_LENGHT];        // LFO FMS TABLE
 
 int LFO_INC_TAB[8];              // LFO step table
 
-void (* const UPDATE_CHAN[8 * 8])(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght) =    // Update Channel functions pointer table
+void (* const UPDATE_CHAN[8 * 8])(ym2612_ *YM2612, channel_ *CH, int16_t **buf, int lenght) =    // Update Channel functions pointer table
 {
   Update_Chan_Algo0,
   Update_Chan_Algo1,
@@ -1127,7 +1127,7 @@ else i--;                    \
 CH->Old_OUTd = CH->OUTd;
 
 
-void Update_Chan_Algo0(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght)
+void Update_Chan_Algo0(ym2612_ *YM2612, channel_ *CH, int16_t **buf, int lenght)
 {
   int i;
 
@@ -1149,7 +1149,7 @@ void Update_Chan_Algo0(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght)
 }
 
 
-void Update_Chan_Algo1(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght)
+void Update_Chan_Algo1(ym2612_ *YM2612, channel_ *CH, int16_t **buf, int lenght)
 {
   int i;
 
@@ -1171,7 +1171,7 @@ void Update_Chan_Algo1(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght)
 }
 
 
-void Update_Chan_Algo2(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght)
+void Update_Chan_Algo2(ym2612_ *YM2612, channel_ *CH, int16_t **buf, int lenght)
 {
   int i;
 
@@ -1193,7 +1193,7 @@ void Update_Chan_Algo2(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght)
 }
 
 
-void Update_Chan_Algo3(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght)
+void Update_Chan_Algo3(ym2612_ *YM2612, channel_ *CH, int16_t **buf, int lenght)
 {
   int i;
 
@@ -1215,7 +1215,7 @@ void Update_Chan_Algo3(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght)
 }
 
 
-void Update_Chan_Algo4(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght)
+void Update_Chan_Algo4(ym2612_ *YM2612, channel_ *CH, int16_t **buf, int lenght)
 {
   int i;
 
@@ -1237,7 +1237,7 @@ void Update_Chan_Algo4(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght)
 }
 
 
-void Update_Chan_Algo5(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght)
+void Update_Chan_Algo5(ym2612_ *YM2612, channel_ *CH, int16_t **buf, int lenght)
 {
   int i;
 
@@ -1259,7 +1259,7 @@ void Update_Chan_Algo5(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght)
 }
 
 
-void Update_Chan_Algo6(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght)
+void Update_Chan_Algo6(ym2612_ *YM2612, channel_ *CH, int16_t **buf, int lenght)
 {
   int i;
 
@@ -1281,7 +1281,7 @@ void Update_Chan_Algo6(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght)
 }
 
 
-void Update_Chan_Algo7(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght)
+void Update_Chan_Algo7(ym2612_ *YM2612, channel_ *CH, int16_t **buf, int lenght)
 {
   int i;
 
@@ -1303,7 +1303,7 @@ void Update_Chan_Algo7(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght)
 }
 
 
-void Update_Chan_Algo0_LFO(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght)
+void Update_Chan_Algo0_LFO(ym2612_ *YM2612, channel_ *CH, int16_t **buf, int lenght)
 {
   int i, env_LFO, freq_LFO;
 
@@ -1325,7 +1325,7 @@ void Update_Chan_Algo0_LFO(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght)
 }
 
 
-void Update_Chan_Algo1_LFO(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght)
+void Update_Chan_Algo1_LFO(ym2612_ *YM2612, channel_ *CH, int16_t **buf, int lenght)
 {
   int i, env_LFO, freq_LFO;
 
@@ -1347,7 +1347,7 @@ void Update_Chan_Algo1_LFO(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght)
 }
 
 
-void Update_Chan_Algo2_LFO(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght)
+void Update_Chan_Algo2_LFO(ym2612_ *YM2612, channel_ *CH, int16_t **buf, int lenght)
 {
   int i, env_LFO, freq_LFO;
 
@@ -1369,7 +1369,7 @@ void Update_Chan_Algo2_LFO(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght)
 }
 
 
-void Update_Chan_Algo3_LFO(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght)
+void Update_Chan_Algo3_LFO(ym2612_ *YM2612, channel_ *CH, int16_t **buf, int lenght)
 {
   int i, env_LFO, freq_LFO;
 
@@ -1391,7 +1391,7 @@ void Update_Chan_Algo3_LFO(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght)
 }
 
 
-void Update_Chan_Algo4_LFO(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght)
+void Update_Chan_Algo4_LFO(ym2612_ *YM2612, channel_ *CH, int16_t **buf, int lenght)
 {
   int i, env_LFO, freq_LFO;
 
@@ -1413,7 +1413,7 @@ void Update_Chan_Algo4_LFO(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght)
 }
 
 
-void Update_Chan_Algo5_LFO(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght)
+void Update_Chan_Algo5_LFO(ym2612_ *YM2612, channel_ *CH, int16_t **buf, int lenght)
 {
   int i, env_LFO, freq_LFO;
 
@@ -1435,7 +1435,7 @@ void Update_Chan_Algo5_LFO(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght)
 }
 
 
-void Update_Chan_Algo6_LFO(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght)
+void Update_Chan_Algo6_LFO(ym2612_ *YM2612, channel_ *CH, int16_t **buf, int lenght)
 {
   int i, env_LFO, freq_LFO;
 
@@ -1457,7 +1457,7 @@ void Update_Chan_Algo6_LFO(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght)
 }
 
 
-void Update_Chan_Algo7_LFO(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght)
+void Update_Chan_Algo7_LFO(ym2612_ *YM2612, channel_ *CH, int16_t **buf, int lenght)
 {
   int i, env_LFO, freq_LFO;
 
@@ -1484,7 +1484,7 @@ void Update_Chan_Algo7_LFO(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght)
  *****************************************************/
 
 
-void Update_Chan_Algo0_Int(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght)
+void Update_Chan_Algo0_Int(ym2612_ *YM2612, channel_ *CH, int16_t **buf, int lenght)
 {
   int i;
 
@@ -1508,7 +1508,7 @@ void Update_Chan_Algo0_Int(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght)
 }
 
 
-void Update_Chan_Algo1_Int(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght)
+void Update_Chan_Algo1_Int(ym2612_ *YM2612, channel_ *CH, int16_t **buf, int lenght)
 {
   int i;
 
@@ -1532,7 +1532,7 @@ void Update_Chan_Algo1_Int(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght)
 }
 
 
-void Update_Chan_Algo2_Int(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght)
+void Update_Chan_Algo2_Int(ym2612_ *YM2612, channel_ *CH, int16_t **buf, int lenght)
 {
   int i;
 
@@ -1556,7 +1556,7 @@ void Update_Chan_Algo2_Int(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght)
 }
 
 
-void Update_Chan_Algo3_Int(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght)
+void Update_Chan_Algo3_Int(ym2612_ *YM2612, channel_ *CH, int16_t **buf, int lenght)
 {
   int i;
 
@@ -1580,7 +1580,7 @@ void Update_Chan_Algo3_Int(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght)
 }
 
 
-void Update_Chan_Algo4_Int(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght)
+void Update_Chan_Algo4_Int(ym2612_ *YM2612, channel_ *CH, int16_t **buf, int lenght)
 {
   int i;
 
@@ -1604,7 +1604,7 @@ void Update_Chan_Algo4_Int(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght)
 }
 
 
-void Update_Chan_Algo5_Int(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght)
+void Update_Chan_Algo5_Int(ym2612_ *YM2612, channel_ *CH, int16_t **buf, int lenght)
 {
   int i;
 
@@ -1628,7 +1628,7 @@ void Update_Chan_Algo5_Int(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght)
 }
 
 
-void Update_Chan_Algo6_Int(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght)
+void Update_Chan_Algo6_Int(ym2612_ *YM2612, channel_ *CH, int16_t **buf, int lenght)
 {
   int i;
 
@@ -1652,7 +1652,7 @@ void Update_Chan_Algo6_Int(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght)
 }
 
 
-void Update_Chan_Algo7_Int(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght)
+void Update_Chan_Algo7_Int(ym2612_ *YM2612, channel_ *CH, int16_t **buf, int lenght)
 {
   int i;
 
@@ -1676,7 +1676,7 @@ void Update_Chan_Algo7_Int(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght)
 }
 
 
-void Update_Chan_Algo0_LFO_Int(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght)
+void Update_Chan_Algo0_LFO_Int(ym2612_ *YM2612, channel_ *CH, int16_t **buf, int lenght)
 {
   int i, env_LFO, freq_LFO;
 
@@ -1700,7 +1700,7 @@ void Update_Chan_Algo0_LFO_Int(ym2612_ *YM2612, channel_ *CH, int **buf, int len
 }
 
 
-void Update_Chan_Algo1_LFO_Int(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght)
+void Update_Chan_Algo1_LFO_Int(ym2612_ *YM2612, channel_ *CH, int16_t **buf, int lenght)
 {
   int i, env_LFO, freq_LFO;
 
@@ -1724,7 +1724,7 @@ void Update_Chan_Algo1_LFO_Int(ym2612_ *YM2612, channel_ *CH, int **buf, int len
 }
 
 
-void Update_Chan_Algo2_LFO_Int(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght)
+void Update_Chan_Algo2_LFO_Int(ym2612_ *YM2612, channel_ *CH, int16_t **buf, int lenght)
 {
   int i, env_LFO, freq_LFO;
 
@@ -1748,7 +1748,7 @@ void Update_Chan_Algo2_LFO_Int(ym2612_ *YM2612, channel_ *CH, int **buf, int len
 }
 
 
-void Update_Chan_Algo3_LFO_Int(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght)
+void Update_Chan_Algo3_LFO_Int(ym2612_ *YM2612, channel_ *CH, int16_t **buf, int lenght)
 {
   int i, env_LFO, freq_LFO;
 
@@ -1772,7 +1772,7 @@ void Update_Chan_Algo3_LFO_Int(ym2612_ *YM2612, channel_ *CH, int **buf, int len
 }
 
 
-void Update_Chan_Algo4_LFO_Int(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght)
+void Update_Chan_Algo4_LFO_Int(ym2612_ *YM2612, channel_ *CH, int16_t **buf, int lenght)
 {
   int i, env_LFO, freq_LFO;
 
@@ -1796,7 +1796,7 @@ void Update_Chan_Algo4_LFO_Int(ym2612_ *YM2612, channel_ *CH, int **buf, int len
 }
 
 
-void Update_Chan_Algo5_LFO_Int(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght)
+void Update_Chan_Algo5_LFO_Int(ym2612_ *YM2612, channel_ *CH, int16_t **buf, int lenght)
 {
   int i, env_LFO, freq_LFO;
 
@@ -1820,7 +1820,7 @@ void Update_Chan_Algo5_LFO_Int(ym2612_ *YM2612, channel_ *CH, int **buf, int len
 }
 
 
-void Update_Chan_Algo6_LFO_Int(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght)
+void Update_Chan_Algo6_LFO_Int(ym2612_ *YM2612, channel_ *CH, int16_t **buf, int lenght)
 {
   int i, env_LFO, freq_LFO;
 
@@ -1844,7 +1844,7 @@ void Update_Chan_Algo6_LFO_Int(ym2612_ *YM2612, channel_ *CH, int **buf, int len
 }
 
 
-void Update_Chan_Algo7_LFO_Int(ym2612_ *YM2612, channel_ *CH, int **buf, int lenght)
+void Update_Chan_Algo7_LFO_Int(ym2612_ *YM2612, channel_ *CH, int16_t **buf, int lenght)
 {
   int i, env_LFO, freq_LFO;
 
@@ -2375,11 +2375,11 @@ void YM2612_SetOptions(int Flags)
 	YM2612_Enable_SSGEG = (Flags >> 1) & 0x01;
 }
 
-void YM2612_ClearBuffer(int **buffer, int length)
+void YM2612_ClearBuffer(int16_t **buffer, int length)
 {
 	// the MAME core does this before updating,
 	// but the Gens core does this before mixing
-	int *bufL, *bufR;
+	int16_t *bufL, *bufR;
 	int i;
 
 	bufL = buffer[0];
@@ -2392,7 +2392,7 @@ void YM2612_ClearBuffer(int **buffer, int length)
 	}
 }
 
-void YM2612_Update(ym2612_ *YM2612, int **buf, int length)
+void YM2612_Update(ym2612_ *YM2612, int16_t **buf, int length)
 {
   int i, j, algo_type;
 
@@ -2516,9 +2516,9 @@ int YM2612_Restore(ym2612_ *YM2612, unsigned char SAVE[0x200])
 
 enum { highpass_fract = 15 };
 enum { highpass_shift = 9 }; // higher values reduce highpass on DAC
-void YM2612_DacAndTimers_Update(ym2612_ *YM2612, int **buffer, int length)
+void YM2612_DacAndTimers_Update(ym2612_ *YM2612, int16_t **buffer, int length)
 {
-  int *bufL, *bufR;
+  int16_t *bufL, *bufR;
   int i;
 
   if(YM2612->DAC && YM2612->DACdata && ! YM2612->DAC_Mute)
