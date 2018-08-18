@@ -6,6 +6,6 @@
 COMPONENT_SRCDIRS := src
 COMPONENT_ADD_INCLUDEDIRS := src
 
-CFLAGS += -Wno-unused-result
-CFLAGS += -Wno-unused-function
-CFLAGS += -DESP32_SYNTH=1
+CFLAGS := -Wno-unused-result
+CFLAGS := -Wno-unused-function
+CPPFLAGS := -DESP32_SYNTH

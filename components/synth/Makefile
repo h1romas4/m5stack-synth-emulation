@@ -1,18 +1,18 @@
-CC = g++
-TARGET ?= test
+CC = gcc
+TARGET ?= vgmplay
 SRC_DIRS ?= ./src
- 
+
 SRCS := $(shell find $(SRC_DIRS) -name *.cpp -or -name *.c -or -name *.s)
 OBJS := $(addsuffix .o,$(basename $(SRCS)))
 DEPS := $(OBJS:.o=.d)
 INCLUDE := -I./include
-LDFLAGS= -g -Wall -lm -lgcc
- 
+LDFLAGS= -g -lm -lgcc
+
 $(TARGET): $(OBJS)
-	$(CC) $(LDFLAGS) $(OBJS) -o $@ $(LOADLIBES) $(LDLIBS)
- 
+	$(CC) $(OBJS) -o $@ $(LOADLIBES) $(LDLIBS) $(LDFLAGS)
+
 .PHONY: clean
 clean:
 	$(RM) $(TARGET) $(OBJS) $(DEPS)
- 
+
 -include $(DEPS)
