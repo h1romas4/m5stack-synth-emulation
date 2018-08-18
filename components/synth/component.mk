@@ -8,4 +8,5 @@ COMPONENT_ADD_INCLUDEDIRS := src
 
 CFLAGS := -Wno-unused-result
 CFLAGS := -Wno-unused-function
+CFLAGS := -mlongcalls
 CPPFLAGS := -DESP32_SYNTH
