@@ -41,6 +41,10 @@
 #include <string.h>
 #include <assert.h>
 
+#if ESP32_SYNTH
+#include <esp_heap_caps.h>
+#endif
+
 // // Message logging.
 // #include "macros/log_msg.h"
 
@@ -135,7 +139,13 @@
 struct ym2612__ YM2612;
 
 static int *SIN_TAB[SIN_LENGTH];			// SINUS TABLE (pointer on TL TABLE)
+
+#ifdef ESP32_SYNTH
+static int *TL_TAB;               			// TOTAL LEVEL TABLE (positif and minus)
+#else
 static int TL_TAB[TL_LENGTH * 2];			// TOTAL LEVEL TABLE (positif and minus)
+#endif
+
 static unsigned int ENV_TAB[2 * ENV_LENGTH + 8];	// ENV CURVE TABLE (attack & decay)
 
 //static unsigned int ATTACK_TO_DECAY[ENV_LENGTH];	// Conversion from attack to decay phase
@@ -163,7 +173,8 @@ static int LFO_FREQ_TAB[LFO_LENGTH];		// LFO FMS TABLE
 static int LFO_ENV_UP[MAX_UPDATE_LENGTH];	// Temporary calculated LFO AMS (adjusted for 11.8 dB)
 static int LFO_FREQ_UP[MAX_UPDATE_LENGTH];	// Temporary calculated LFO FMS
 
-static int INTER_TAB[MAX_UPDATE_LENGTH];	// Interpolation table
+// ESP32
+// static int INTER_TAB[MAX_UPDATE_LENGTH];	// Interpolation table
 
 static int LFO_INC_TAB[8];		// LFO step table
 
@@ -1579,6 +1590,12 @@ int YM2612_Init(int Clock, int Rate, int Interpolation)
 	// Tableau TL :
 	// [0     -  4095] = +output  [4095  - ...] = +output overflow (fill with 0)
 	// [12288 - 16383] = -output  [16384 - ...] = -output overflow (fill with 0)
+
+    #ifdef ESP32_SYNTH
+    TL_TAB = (int *)heap_caps_malloc(TL_LENGTH * 2 * sizeof(int), MALLOC_CAP_8BIT);
+    if(TL_TAB == NULL) printf("TL_TAB alloc error!\n");
+    memset(TL_TAB, 0x00, TL_LENGTH * 2 * sizeof(int));
+    #endif
 
 	for (i = 0; i < TL_LENGTH; i++)
 	{

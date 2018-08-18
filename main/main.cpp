@@ -186,7 +186,7 @@ short audio_write_sound_stereo(int sample32)
 
     if (sample32 < -0x7FFF)
         sample16 = -0x7FFF;
-    else if (sample16 > 0x7FFF)
+    else if (sample32 > 0x7FFF)
         sample16 = 0x7FFF;
     else
         sample16 = (short)(sample32);
@@ -223,10 +223,10 @@ void loop()
 
     do {
         frame_size = parse_vgm();
-        memset(buflr[0], 0x00, frame_size * sizeof(int16_t));
-        memset(buflr[1], 0x00, frame_size * sizeof(int16_t));
+        memset(buflr[0], 0x00, frame_size * sizeof(int));
+        memset(buflr[1], 0x00, frame_size * sizeof(int));
         YM2612_Update(buflr, frame_size);
-        // SN76496Update((short *)buflr[0], frame_size, MONO);
+        SN76496Update((short *)buflr[0], frame_size, MONO);
         if(frame_size != 0) {
             for(int16_t i = 0; i < frame_size; i++) {
                 short d[2];
