@@ -3,9 +3,9 @@
 #include "esp_partition.h"
 #include <esp_heap_caps.h>
 #include "driver/i2s.h"
+#include "ym2612.hpp"
 extern "C" {
 #include "sn76496.h"
-#include "ym2612.h"
 }
 
 #define SAMPLING_RATE 44100
@@ -13,8 +13,6 @@ extern "C" {
 #define MONO 0
 
 #define VGM_DATA_POS 0x80;
-
-ym2612_ *ym2162;
 
 uint8_t *vgm;
 uint32_t vgmpos;
@@ -73,16 +71,16 @@ uint16_t parse_vgm()
             reg = get_vgm_ui8();
             dat = get_vgm_ui8();
             if(play) {
-                YM2612_Write(ym2162, 0, reg);
-                YM2612_Write(ym2162, 1, dat);
+                YM2612_Write(0, reg);
+                YM2612_Write(1, dat);
             }
             break;
         case 0x53:
             reg = get_vgm_ui8();
             dat = get_vgm_ui8();
             if(play) {
-                YM2612_Write(ym2162, 2, reg);
-                YM2612_Write(ym2162, 3, dat);
+                YM2612_Write(2, reg);
+                YM2612_Write(3, dat);
             }
             break;
         case 0x61:
@@ -176,12 +174,24 @@ void setup()
 
     // Reset for NTSC Genesis/Megadrive
     SN76496_init(3579540, SAMPLING_RATE);
-    // ym2162 = YM2612_Init(53693100 / 7, SAMPLING_RATE, 0);
-    // for testing
-    ym2162 = YM2612_Init(8000000, SAMPLING_RATE, 0);
+    YM2612_Init(8000000, SAMPLING_RATE, 0);
 
     // // Init DAC
     init_dac();
+}
+
+short audio_write_sound_stereo(int sample32)
+{
+    short sample16;
+
+    if (sample32 < -0x7FFF)
+        sample16 = -0x7FFF;
+    else if (sample16 > 0x7FFF)
+        sample16 = 0x7FFF;
+    else
+        sample16 = (short)(sample32);
+
+    return sample16;
 }
 
 // The loop routine runs over and over again forever
@@ -193,17 +203,17 @@ void loop()
     uint32_t frame_all = 0;
 
     uint16_t buffer_max_size;
-    int16_t **buflr;
+    int **buflr;
 
     // parse max frame
-    buffer_max_size = parse_max_frame() * sizeof(int16_t);
+    buffer_max_size = parse_max_frame() * sizeof(int);
     printf("buffer_max_size %d\n", buffer_max_size);
 
     // malloc sound buffer
-    buflr = (int16_t **)malloc(sizeof(int16_t *) * STEREO);
-    buflr[0] = (int16_t *)heap_caps_malloc(buffer_max_size, MALLOC_CAP_8BIT);
+    buflr = (int **)malloc(sizeof(int *) * STEREO);
+    buflr[0] = (int *)heap_caps_malloc(buffer_max_size, MALLOC_CAP_8BIT);
     if(buflr[0] == NULL) printf("pcm buffer0 alloc fail.\n");
-    buflr[1] = (int16_t *)heap_caps_malloc(buffer_max_size, MALLOC_CAP_8BIT);
+    buflr[1] = (int *)heap_caps_malloc(buffer_max_size, MALLOC_CAP_8BIT);
     if(buflr[1] == NULL) printf("pcm buffer1 alloc fail.\n");
     printf("last free memory %d\n", heap_caps_get_free_size(MALLOC_CAP_8BIT));
 
@@ -215,14 +225,14 @@ void loop()
         frame_size = parse_vgm();
         memset(buflr[0], 0x00, frame_size * sizeof(int16_t));
         memset(buflr[1], 0x00, frame_size * sizeof(int16_t));
-        YM2612_Update(ym2162, buflr, frame_size);
-        SN76496Update((short *)buflr[0], frame_size, MONO);
+        YM2612_Update(buflr, frame_size);
+        // SN76496Update((short *)buflr[0], frame_size, MONO);
         if(frame_size != 0) {
             for(int16_t i = 0; i < frame_size; i++) {
-                uint32_t d[2];
-                d[0] = buflr[0][i];
-                d[1] = buflr[1][i];
-                i2s_write((i2s_port_t)i2s_num, d, sizeof(int16_t) * STEREO, &bytes_written, portMAX_DELAY);
+                short d[2];
+                d[0] = audio_write_sound_stereo(buflr[0][i]);
+                d[1] = audio_write_sound_stereo(buflr[1][i]);
+                i2s_write((i2s_port_t)i2s_num, d, sizeof(short) * STEREO, &bytes_written, portMAX_DELAY);
                 // printf("bytes_written %d\n", bytes_written);
             }
         }
@@ -233,7 +243,7 @@ void loop()
     free(buflr[1]);
     free(buflr);
 
-    YM2612_End(ym2162);
+    YM2612_End();
 
     M5.Lcd.printf("\ntotal frame: %d %d\n", frame_all, frame_all / SAMPLING_RATE);
 
