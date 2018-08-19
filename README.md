@@ -43,3 +43,4 @@ Enjoy!
 ## Thanks!
 
 * [sn76496.c](https://github.com/notaz/picodrive/blob/master/pico/sound/sn76496.c)
+* [ym2612.cpp](https://github.com/lutris/gens/blob/master/src/gens/gens_core/sound/ym2612.cpp)
