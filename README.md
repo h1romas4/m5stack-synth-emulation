@@ -1,14 +1,14 @@
 # m5stack-synth-emulation
 
-PSG(SN76496) VGM player on ESP32/M5STACK
+PSG(SN76496) VGM player on ESP32/M5Stack
 
 ## Require
 
-* M5STACK
+* M5Stack
 * [esp32-idf setup](https://esp-idf.readthedocs.io/en/latest/get-started/index.html#setup-toolchain)
 * VGM format file for sn76496(PSG)
 
-## Compile
+## Build
 
 ```
 git clone --recursive https://github.com/h1romas4/m5stack-synth-emulation.git
@@ -16,7 +16,7 @@ cd m5stack-synth-emulation.git
 make
 ```
 
-## Upload .vgm file to M5STACK flash
+## Upload .vgm file to M5Stack flash
 
 ```
 mv example.vgz example.vgm.gz
