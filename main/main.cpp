@@ -72,19 +72,12 @@ uint16_t parse_vgm()
             if(play) SN76496Write(dat);
             break;
         case 0x52:
-            reg = get_vgm_ui8();
-            dat = get_vgm_ui8();
-            if(play) {
-                YM2612_Write(0, reg);
-                YM2612_Write(1, dat);
-            }
-            break;
         case 0x53:
             reg = get_vgm_ui8();
             dat = get_vgm_ui8();
             if(play) {
-                YM2612_Write(2, reg);
-                YM2612_Write(3, dat);
+                YM2612_Write(0 + ((command & 1) << 1), reg);
+                YM2612_Write(1 + ((command & 1) << 1), dat);
             }
             break;
         case 0x61:
