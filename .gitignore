@@ -2,3 +2,4 @@ build/
 *.o
 *.vgm
 *.pcm
+components/synth/vgmplay

@@ -4,6 +4,7 @@
 # (Uses default behaviour of compiling all source files in directory, adding 'include' to include path.)
 
 COMPONENT_SRCDIRS := src
+COMPONENT_OBJS := src/sn76496.o src/ym2612.o
 COMPONENT_ADD_INCLUDEDIRS := src
 
 CFLAGS := -Wno-unused-result

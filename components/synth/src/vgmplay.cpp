@@ -1,4 +1,5 @@
 // for vgm testing
+// make clean && make && ./vgmplay && ffplay -f s16le -ar 44100 -ac 2 ../../vgm/01.pcm
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -10,6 +11,7 @@ extern "C" {
 }
 
 #define SAMPLING_RATE 44100
+
 #define STEREO 2
 #define MONO 0
 
@@ -54,19 +56,12 @@ u_int16_t parse_vgm()
             if(play) SN76496Write(dat);
             break;
         case 0x52:
-            reg = get_vgm_ui8();
-            dat = get_vgm_ui8();
-            if(play) {
-                YM2612_Write(0, reg);
-                YM2612_Write(1, dat);
-            }
-            break;
         case 0x53:
             reg = get_vgm_ui8();
             dat = get_vgm_ui8();
             if(play) {
-                YM2612_Write(2, reg);
-                YM2612_Write(3, dat);
+                YM2612_Write(0 + ((command & 1) << 1), reg);
+                YM2612_Write(1 + ((command & 1) << 1), dat);
             }
             break;
         case 0x61:
