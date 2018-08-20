@@ -9,19 +9,16 @@ extern "C" {
 }
 
 #define SAMPLING_RATE 44100
+#define FRAME_SIZE_MAX 512
+
 #define STEREO 2
 #define MONO 0
 
-#ifdef YM2612
-#define VGM_DATA_POS 0x80;
-#else
 #define VGM_DATA_POS 0x40;
-#endif
 
 uint8_t *vgm;
-uint32_t vgmpos;
+uint32_t vgmpos = VGM_DATA_POS;
 bool vgmend = false;
-bool play = false;
 
 uint8_t *get_vgmdata()
 {
@@ -48,8 +45,7 @@ uint8_t *get_vgmdata()
 
 uint8_t get_vgm_ui8()
 {
-    uint8_t ret = vgm[vgmpos];
-    vgmpos++;
+    uint8_t ret = vgm[vgmpos++];
     return ret;
 }
 
@@ -69,16 +65,14 @@ uint16_t parse_vgm()
     switch (command) {
         case 0x50:
             dat = get_vgm_ui8();
-            if(play) SN76496Write(dat);
+            SN76496Write(dat);
             break;
         case 0x52:
         case 0x53:
             reg = get_vgm_ui8();
             dat = get_vgm_ui8();
-            if(play) {
-                YM2612_Write(0 + ((command & 1) << 1), reg);
-                YM2612_Write(1 + ((command & 1) << 1), dat);
-            }
+            YM2612_Write(0 + ((command & 1) << 1), reg);
+            YM2612_Write(1 + ((command & 1) << 1), dat);
             break;
         case 0x61:
             wait = get_vgm_ui16();
@@ -111,28 +105,6 @@ uint16_t parse_vgm()
     }
 
 	return wait;
-}
-
-uint16_t parse_max_frame()
-{
-    uint16_t frame_size;
-    uint16_t frame_max_size = 0;
-
-    play = false;
-    vgmpos = VGM_DATA_POS;
-
-    do {
-        frame_size = parse_vgm();
-        if(frame_max_size < frame_size) {
-            frame_max_size = frame_size;
-        }
-    } while(!vgmend);
-
-    play = true;
-    vgmend = false;
-    vgmpos = VGM_DATA_POS;
-
-    return frame_max_size;
 }
 
 static const i2s_port_t i2s_num = I2S_NUM_0; // i2s port number
@@ -171,9 +143,7 @@ void setup()
 
     // Reset for NTSC Genesis/Megadrive
     SN76496_init(3579540, SAMPLING_RATE);
-    #ifdef YM2612
-    YM2612_Init(8000000, SAMPLING_RATE, 0);
-    #endif
+    YM2612_Init(7678453, SAMPLING_RATE, 0);
 
     // // Init DAC
     init_dac();
@@ -199,73 +169,65 @@ void loop()
     size_t bytes_written = 0;
 
     uint16_t frame_size;
+    uint16_t frame_size_count = 0;
     uint32_t frame_all = 0;
 
-    uint16_t buffer_max_size;
-    short *bufmn;
-    #ifdef YM2612
-    int **buflr;
-    #endif
-
-    // parse max frame
-    buffer_max_size = parse_max_frame();
-    printf("buffer_max_size %d\n", buffer_max_size);
-
     // malloc sound buffer
-    #ifdef YM2612
+    int **buflr;
+    short *bufmn;
+    int **bufdummy = NULL;
+
     buflr = (int **)malloc(sizeof(int *) * STEREO);
-    buflr[0] = (int *)heap_caps_malloc(buffer_max_size * sizeof(int), MALLOC_CAP_32BIT);
+    buflr[0] = (int *)heap_caps_malloc(FRAME_SIZE_MAX * sizeof(int), MALLOC_CAP_8BIT);
     if(buflr[0] == NULL) printf("pcm buffer0 alloc fail.\n");
-    buflr[1] = (int *)heap_caps_malloc(buffer_max_size * sizeof(int), MALLOC_CAP_32BIT);
+    buflr[1] = (int *)heap_caps_malloc(FRAME_SIZE_MAX * sizeof(int), MALLOC_CAP_8BIT);
     if(buflr[1] == NULL) printf("pcm buffer1 alloc fail.\n");
-    #else
-    bufmn = (short *)heap_caps_malloc(buffer_max_size * sizeof(short), MALLOC_CAP_8BIT);
+    bufmn = (short *)heap_caps_malloc(FRAME_SIZE_MAX * sizeof(short), MALLOC_CAP_8BIT);
     if(bufmn == NULL) printf("pcm buffer3 alloc fail.\n");
-    #endif
 
     printf("last free memory8 %d\n", heap_caps_get_free_size(MALLOC_CAP_8BIT));
-    printf("last free memory32 %d\n", heap_caps_get_free_size(MALLOC_CAP_32BIT));
 
     // free memory
-    M5.Lcd.printf("frame max size: %d\n", buffer_max_size);
+    M5.Lcd.printf("frame max size: %d\n", FRAME_SIZE_MAX);
     M5.Lcd.printf("free memory: %d byte\n", heap_caps_get_free_size(MALLOC_CAP_8BIT));
 
     do {
         frame_size = parse_vgm();
-        #ifdef YM2612
-        memset(buflr[0], 0x00, frame_size * sizeof(int));
-        memset(buflr[1], 0x00, frame_size * sizeof(int));
-        YM2612_Update(buflr, frame_size);
-        #else
-        memset(bufmn, 0x00, frame_size * sizeof(short));
-        SN76496Update((short *)bufmn, frame_size, MONO);
-        #endif
-        if(frame_size != 0) {
-            for(int16_t i = 0; i < frame_size; i++) {
-                short d[STEREO];
-                #ifdef YM2612
-                d[0] = audio_write_sound_stereo(buflr[0][i]);
-                d[1] = 0x00;
-                #else
-                d[0] = bufmn[i];
-                d[1] = 0x00;
-                #endif
-                i2s_write((i2s_port_t)i2s_num, d, sizeof(short) * STEREO, &bytes_written, portMAX_DELAY);
-                // printf("bytes_written %d\n", bytes_written);
+        if(frame_size == 0) {
+            YM2612_Update((int **)bufdummy, 0);
+            SN76496Update((short *)bufdummy, 0, 0);
+        } else {
+            frame_size_count += frame_size;
+        }
+        while(frame_size_count >= FRAME_SIZE_MAX || vgmend) {
+            int16_t frame_update_count;
+            if(frame_size_count - FRAME_SIZE_MAX > 0) {
+                frame_update_count = FRAME_SIZE_MAX;
+            } else {
+                frame_update_count = frame_size_count;
             }
+            YM2612_ClearBuffer((int **)buflr, frame_update_count);
+            YM2612_Update((int **)buflr, frame_update_count);
+            memset((short *)bufmn, 0, sizeof(short) * frame_update_count);
+            SN76496Update((short *)bufmn, frame_update_count, 0);
+            for(int i = 0; i < frame_update_count; i++) {
+                short d[2];
+                d[0] = audio_write_sound_stereo(buflr[0][i] + bufmn[i]);
+                d[1] = audio_write_sound_stereo(buflr[1][i] + bufmn[i]);
+                i2s_write((i2s_port_t)i2s_num, d, sizeof(short) * STEREO, &bytes_written, portMAX_DELAY);
+            }
+            frame_size_count -= frame_update_count;
+            if(frame_size_count <= 0) break;
         }
         frame_all += frame_size;
     } while(!vgmend);
 
-    #ifdef YM2612
     free(buflr[0]);
     free(buflr[1]);
     free(buflr);
+    free(bufmn);
 
     YM2612_End();
-    #else
-    free(bufmn);
-    #endif
 
     M5.Lcd.printf("\ntotal frame: %d %d\n", frame_all, frame_all / SAMPLING_RATE);
 

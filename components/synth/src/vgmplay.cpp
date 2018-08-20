@@ -1,16 +1,18 @@
 // for vgm testing
-// make clean && make && ./vgmplay && ffplay -f s16le -ar 44100 -ac 2 ../../vgm/01.pcm
+// make clean && make && ./vgmplay && ffplay -f s16le -ar 44100 -ac 2 ../../vgm/s16le.pcm
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <assert.h>
 #include "ym2612.hpp"
 extern "C" {
 #include "sn76496.h"
 }
 
 #define SAMPLING_RATE 44100
+#define FRAME_SIZE_MAX 512
 
 #define STEREO 2
 #define MONO 0
@@ -18,21 +20,20 @@ extern "C" {
 #define VGM_DATA_POS 0x40;
 
 u_int8_t *vgm;
-u_int32_t vgmpos;
+u_int32_t vgmpos = VGM_DATA_POS;
 bool vgmend = false;
-bool play = false;
 
 void vgm_load(void) {
     vgm = (unsigned char *) malloc(3000000);
-    int fd = open("../../vgm/01.vgm", O_RDONLY);
+    int fd = open("../../vgm/35.vgm", O_RDONLY);
+    assert(fd != -1);
     read(fd, vgm, 3000000);
     close(fd);
 }
 
 u_int8_t get_vgm_ui8()
 {
-    u_int8_t ret = vgm[vgmpos];
-    vgmpos++;
+    u_int8_t ret = vgm[vgmpos++];
     return ret;
 }
 
@@ -53,16 +54,14 @@ u_int16_t parse_vgm()
     switch (command) {
         case 0x50:
             dat = get_vgm_ui8();
-            if(play) SN76496Write(dat);
+            SN76496Write(dat);
             break;
         case 0x52:
         case 0x53:
             reg = get_vgm_ui8();
             dat = get_vgm_ui8();
-            if(play) {
-                YM2612_Write(0 + ((command & 1) << 1), reg);
-                YM2612_Write(1 + ((command & 1) << 1), dat);
-            }
+            YM2612_Write(0 + ((command & 1) << 1), reg);
+            YM2612_Write(1 + ((command & 1) << 1), dat);
             break;
         case 0x61:
             wait = get_vgm_ui16();
@@ -97,28 +96,6 @@ u_int16_t parse_vgm()
 	return wait;
 }
 
-u_int16_t parse_max_frame()
-{
-    u_int16_t frame_size;
-    u_int16_t frame_max_size = 0;
-
-    play = false;
-    vgmpos = VGM_DATA_POS;
-
-    do {
-        frame_size = parse_vgm();
-        if(frame_max_size < frame_size) {
-            frame_max_size = frame_size;
-        }
-    } while(!vgmend);
-
-    play = true;
-    vgmend = false;
-    vgmpos = VGM_DATA_POS;
-
-    return frame_max_size;
-}
-
 short audio_write_sound_stereo(int sample32)
 {
     short sample16;
@@ -142,42 +119,55 @@ int main(void)
     SN76496_init(3579540, SAMPLING_RATE);
     YM2612_Init(7678453, SAMPLING_RATE, 0);
 
-    size_t bytes_written = 0;
+    // malloc sound buffer
+    int **buflr;
+    short *bufmn;
+    int **bufdummy;
 
-    u_int16_t frame_size;
+    buflr = (int **)malloc(sizeof(int) * STEREO);
+    assert(buflr != NULL);
+    buflr[0] = (int *)malloc(sizeof(int) * FRAME_SIZE_MAX);
+    assert(buflr[0] != NULL);
+    buflr[1] = (int *)malloc(sizeof(int) * FRAME_SIZE_MAX);
+    assert(buflr[1] != NULL);
+    bufmn = (short *)malloc(sizeof(short) * FRAME_SIZE_MAX);
+    assert(bufmn != NULL);
+
+    size_t bytes_written = 0;
+    u_int16_t frame_size = 0;
+    u_int16_t frame_size_count = 0;
     u_int32_t frame_all = 0;
 
-
-    u_int16_t frame_max_size;
-    u_int16_t buffer_max_size;
-    int **buflr;
-    int **DUMMYBUF;
-
-    // parse max frame
-    frame_max_size = parse_max_frame();
-    buffer_max_size = frame_max_size * sizeof(int);
-    printf("buffer_max_size %d\n", buffer_max_size);
-
-    // malloc sound buffer
-    buflr = (int **)malloc(sizeof(int) * STEREO);
-    buflr[0] = (int *)malloc(buffer_max_size);
-    if(buflr[0] == NULL) printf("pcm buffer0 alloc fail.\n");
-    buflr[1] = (int *)malloc(buffer_max_size);
-    if(buflr[1] == NULL) printf("pcm buffer1 alloc fail.\n");
-
-    int fd = open("../../vgm/01.pcm", O_CREAT | O_WRONLY | O_TRUNC, 0666);
+    int fd = open("../../vgm/s16le.pcm", O_CREAT | O_WRONLY | O_TRUNC, 0666);
+    assert(fd != -1);
 
     do {
         frame_size = parse_vgm();
-        YM2612_ClearBuffer((int **)buflr, frame_max_size);
-        YM2612_Update((int **)buflr, frame_size);
-        if(frame_size != 0) {
-            for(int i = 0; i < frame_size; i++) {
-                short d[2];
-                d[0] = audio_write_sound_stereo(buflr[0][i]);
-                d[1] = audio_write_sound_stereo(buflr[1][i]);
-                write(fd, d, sizeof(short) * 2);
+        if(frame_size == 0) {
+            YM2612_Update((int **)bufdummy, 0);
+            SN76496Update((short *)bufdummy, 0, 0);
+        } else {
+            frame_size_count += frame_size;
+        }
+        while(frame_size_count >= FRAME_SIZE_MAX || vgmend) {
+            int16_t frame_update_count;
+            if(frame_size_count - FRAME_SIZE_MAX > 0) {
+                frame_update_count = FRAME_SIZE_MAX;
+            } else {
+                frame_update_count = frame_size_count;
             }
+            YM2612_ClearBuffer((int **)buflr, frame_update_count);
+            YM2612_Update((int **)buflr, frame_update_count);
+            memset((short *)bufmn, 0, sizeof(short) * frame_update_count);
+            SN76496Update((short *)bufmn, frame_update_count, 0);
+            for(int i = 0; i < frame_update_count; i++) {
+                short d[2];
+                d[0] = audio_write_sound_stereo(buflr[0][i] + bufmn[i]);
+                d[1] = audio_write_sound_stereo(buflr[1][i] + bufmn[i]);
+                write(fd, d, sizeof(short) * STEREO);
+            }
+            frame_size_count -= frame_update_count;
+            if(frame_size_count <= 0) break;
         }
         frame_all += frame_size;
     } while(!vgmend);
@@ -187,6 +177,7 @@ int main(void)
     free(buflr[0]);
     free(buflr[1]);
     free(buflr);
+    free(bufmn);
 
     YM2612_End();
 
