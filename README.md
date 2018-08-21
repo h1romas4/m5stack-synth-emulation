@@ -2,6 +2,8 @@
 
 GENESIS/MEGADRIVE(YM2612+SN76496) VGM player on ESP32/M5Stack
 
+* PCM not supported
+
 ## Demo
 
 [https://www.youtube.com/watch?v=dunNtkFS8gc](https://www.youtube.com/watch?v=dunNtkFS8gc)
