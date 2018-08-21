@@ -153,12 +153,16 @@ short audio_write_sound_stereo(int sample32)
 {
     short sample16;
 
-    if (sample32 < -0x7FFF)
+    if (sample32 < -0x7FFF) {
         sample16 = -0x7FFF;
-    else if (sample32 > 0x7FFF)
+    } else if (sample32 > 0x7FFF) {
         sample16 = 0x7FFF;
-    else
+    } else {
         sample16 = (short)(sample32);
+    }
+
+    // for I2S_MODE_DAC_BUILT_IN
+    sample16 = sample16 ^ 0x8000U;
 
     return sample16;
 }
@@ -171,6 +175,9 @@ void loop()
     uint16_t frame_size;
     uint16_t frame_size_count = 0;
     uint32_t frame_all = 0;
+
+    short csize = 0;
+    short bsize = 0;
 
     // malloc sound buffer
     int **buflr;
@@ -210,6 +217,12 @@ void loop()
             YM2612_Update((int **)buflr, frame_update_count);
             memset((short *)bufmn, 0, sizeof(short) * frame_update_count);
             SN76496Update((short *)bufmn, frame_update_count, 0);
+
+            csize = (unsigned short)buflr[0][0] / (128 + 64);
+            M5.Lcd.fillCircle(320 / 2, 240 / 2, bsize, BLACK);
+            M5.Lcd.fillCircle(320 / 2, 240 / 2, csize, GREENYELLOW);
+            bsize = csize;
+
             for(int i = 0; i < frame_update_count; i++) {
                 short d[2];
                 d[0] = audio_write_sound_stereo(buflr[0][i] + bufmn[i]);

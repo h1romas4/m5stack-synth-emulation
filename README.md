@@ -1,8 +1,6 @@
 # m5stack-synth-emulation
 
-PSG(SN76496) VGM player on ESP32/M5Stack
-
-* Support YM2612, but too noisy..
+GENESIS/MEGADRIVE(YM2612/SN76496) VGM player on ESP32/M5Stack
 
 ## Require
 
