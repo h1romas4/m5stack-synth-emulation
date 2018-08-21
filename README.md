@@ -1,6 +1,6 @@
 # m5stack-synth-emulation
 
-GENESIS/MEGADRIVE(YM2612/SN76496) VGM player on ESP32/M5Stack
+GENESIS/MEGADRIVE(YM2612+SN76496) VGM player on ESP32/M5Stack
 
 ## Demo
 
@@ -10,7 +10,7 @@ GENESIS/MEGADRIVE(YM2612/SN76496) VGM player on ESP32/M5Stack
 
 * M5Stack
 * [esp32-idf setup](https://esp-idf.readthedocs.io/en/latest/get-started/index.html#setup-toolchain)
-* GENESIS/MEGADRIVE(YM2612/SN76496) VGM format file
+* GENESIS/MEGADRIVE(YM2612+SN76496) VGM format file
 
 ## Build
 
