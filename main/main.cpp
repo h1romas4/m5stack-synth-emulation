@@ -163,11 +163,11 @@ void setup()
     printf("clock_ym2612 : %d\n", clock_ym2612);
     printf("vgmpos : %x\n", vgmpos);
 
-    // // Reset for NTSC Genesis/Megadrive
+    // init sound chip
     SN76496_init(clock_sn76489, SAMPLING_RATE);
     YM2612_Init(clock_ym2612, SAMPLING_RATE, 0);
 
-    // // Init DAC
+    // init internal DAC
     init_dac();
 }
 
