@@ -30,12 +30,6 @@ gzip -d example.vgm.gz
 flashrom.sh example.vgm   # not vgz
 ```
 
-Please change if the vgm header position is different. [main.cpp](https://github.com/h1romas4/m5stack-synth-emulation/blob/master/main/main.cpp#L17)
-
-```
-int vgmpos = 0x40;
-```
-
 ## Play music
 
 ```

@@ -10,6 +10,7 @@
 extern "C" {
 #include "sn76496.h"
 }
+#include "vgmplay.h"
 
 #define SAMPLING_RATE 44100
 #define FRAME_SIZE_MAX 512
@@ -17,18 +18,34 @@ extern "C" {
 #define STEREO 2
 #define MONO 0
 
-#define VGM_DATA_POS 0x40;
-
+VGM_HEADER *vgmheader;
 u_int8_t *vgm;
-u_int32_t vgmpos = VGM_DATA_POS;
+u_int32_t vgmpos = 0x40;
 bool vgmend = false;
+
+u_int32_t clock_sn76489;
+u_int32_t clock_ym2612;
 
 void vgm_load(void) {
     vgm = (unsigned char *) malloc(3000000);
-    int fd = open("../../vgm/35.vgm", O_RDONLY);
+    int fd = open("../../vgm/03.vgm", O_RDONLY);
     assert(fd != -1);
     read(fd, vgm, 3000000);
     close(fd);
+
+    vgmheader = (VGM_HEADER *)vgm;
+    printf("version %x\n", vgmheader->lngVersion);
+    if(vgmheader->lngVersion >= 0x150) {
+        vgmheader->lngDataOffset += 0x00000034;
+    }
+
+    clock_sn76489 = vgmheader->lngHzPSG;
+    clock_ym2612 = vgmheader->lngHzYM2612;
+    vgmpos = vgmheader->lngDataOffset;
+
+    printf("vgmpos %x\n", vgmheader->lngDataOffset);
+    printf("clock_sn76489 %d\n", clock_sn76489);
+    printf("clock_ym2612 %d\n", clock_ym2612);
 }
 
 u_int8_t get_vgm_ui8()
@@ -40,6 +57,11 @@ u_int8_t get_vgm_ui8()
 u_int16_t get_vgm_ui16()
 {
     return get_vgm_ui8() + (get_vgm_ui8() << 8);
+}
+
+u_int32_t get_vgm_ui32()
+{
+    return get_vgm_ui8() + (get_vgm_ui8() << 8) + (get_vgm_ui8() << 16) + (get_vgm_ui8() << 24);
 }
 
 u_int16_t parse_vgm()
@@ -75,17 +97,24 @@ u_int16_t parse_vgm()
         case 0x66:
             vgmend = true;
             break;
+        case 0x67:
+            printf("PCM not implement\n");
+            printf("pcm %x\n", get_vgm_ui8()); // 0x66
+            printf("pcm %x\n", get_vgm_ui8()); // data type
+            vgmpos += get_vgm_ui32(); // size of data, in bytes
+            break;
         case 0x70: case 0x71: case 0x72: case 0x73: case 0x74: case 0x75: case 0x76: case 0x77:
         case 0x78: case 0x79: case 0x7a: case 0x7b: case 0x7c: case 0x7d: case 0x7e: case 0x7f:
             wait = (command & 0x0f) + 1;
             break;
         case 0x80: case 0x81: case 0x82: case 0x83: case 0x84: case 0x85: case 0x86: case 0x87:
         case 0x88: case 0x89: case 0x8a: case 0x8b: case 0x8c: case 0x8d: case 0x8e: case 0x8f:
-            printf("PCM not implement");
+            printf("PCM not implement1\n");
+            wait = (command & 0x0f);
             break;
         case 0xe0:
-            printf("PCM not implement");
-            get_vgm_ui8(); get_vgm_ui8(); get_vgm_ui8(); get_vgm_ui8();
+            printf("PCM not implement2\n");
+            get_vgm_ui32();
             break;
         default:
             printf("unknown cmd at 0x%x: 0x%x\n", vgmpos, vgm[vgmpos]);
@@ -115,9 +144,9 @@ int main(void)
 {
     vgm_load();
 
-    // Reset for NTSC Genesis/Megadrive
-    SN76496_init(3579540, SAMPLING_RATE);
-    YM2612_Init(7678453, SAMPLING_RATE, 0);
+    // // Reset for NTSC Genesis/Megadrive
+    SN76496_init(clock_sn76489, SAMPLING_RATE);
+    YM2612_Init(clock_ym2612, SAMPLING_RATE, 0);
 
     // malloc sound buffer
     int **buflr;

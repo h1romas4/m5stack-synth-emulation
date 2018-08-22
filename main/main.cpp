@@ -14,11 +14,12 @@ extern "C" {
 #define STEREO 2
 #define MONO 0
 
-#define VGM_DATA_POS 0x40;
-
 uint8_t *vgm;
-uint32_t vgmpos = VGM_DATA_POS;
+uint32_t vgmpos = 0x40;
 bool vgmend = false;
+
+uint32_t clock_sn76489;
+uint32_t clock_ym2612;
 
 uint8_t *get_vgmdata()
 {
@@ -54,6 +55,11 @@ uint16_t get_vgm_ui16()
     return get_vgm_ui8() + (get_vgm_ui8() << 8);
 }
 
+uint32_t get_vgm_ui32()
+{
+    return get_vgm_ui8() + (get_vgm_ui8() << 8) + (get_vgm_ui8() << 16) + (get_vgm_ui8() << 24);
+}
+
 uint16_t parse_vgm()
 {
     uint8_t command;
@@ -86,17 +92,24 @@ uint16_t parse_vgm()
         case 0x66:
             vgmend = true;
             break;
+        case 0x67:
+            // PCM not implement
+            get_vgm_ui8(); // 0x66
+            get_vgm_ui8(); // data type
+            vgmpos += get_vgm_ui32(); // size of data, in bytes
+            break;
         case 0x70: case 0x71: case 0x72: case 0x73: case 0x74: case 0x75: case 0x76: case 0x77:
         case 0x78: case 0x79: case 0x7a: case 0x7b: case 0x7c: case 0x7d: case 0x7e: case 0x7f:
             wait = (command & 0x0f) + 1;
             break;
         case 0x80: case 0x81: case 0x82: case 0x83: case 0x84: case 0x85: case 0x86: case 0x87:
         case 0x88: case 0x89: case 0x8a: case 0x8b: case 0x8c: case 0x8d: case 0x8e: case 0x8f:
-            printf("PCM not implement");
+            // PCM not implement
+            wait = (command & 0x0f);
             break;
         case 0xe0:
-            printf("PCM not implement");
-            get_vgm_ui8(); get_vgm_ui8(); get_vgm_ui8(); get_vgm_ui8();
+            // PCM not implement
+            get_vgm_ui32();
             break;
         default:
             printf("unknown cmd at 0x%x: 0x%x\n", vgmpos, vgm[vgmpos]);
@@ -141,9 +154,18 @@ void setup()
     // Load vgm data
     vgm = get_vgmdata();
 
-    // Reset for NTSC Genesis/Megadrive
-    SN76496_init(3579540, SAMPLING_RATE);
-    YM2612_Init(7678453, SAMPLING_RATE, 0);
+    // read vgm header
+    vgmpos = 0x0C; clock_sn76489 = get_vgm_ui32();
+    vgmpos = 0x2C; clock_ym2612 = get_vgm_ui32();
+    vgmpos = 0x34; vgmpos = 0x34 + get_vgm_ui32();
+
+    printf("clock_sn76489 : %d\n", clock_sn76489);
+    printf("clock_ym2612 : %d\n", clock_ym2612);
+    printf("vgmpos : %x\n", vgmpos);
+
+    // // Reset for NTSC Genesis/Megadrive
+    SN76496_init(clock_sn76489, SAMPLING_RATE);
+    YM2612_Init(clock_ym2612, SAMPLING_RATE, 0);
 
     // // Init DAC
     init_dac();
