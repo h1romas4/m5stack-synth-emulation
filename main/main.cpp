@@ -222,20 +222,29 @@ void loop()
     M5.Lcd.printf("frame max size: %d\n", FRAME_SIZE_MAX);
     M5.Lcd.printf("free memory: %d byte\n", heap_caps_get_free_size(MALLOC_CAP_8BIT));
 
+    int32_t last_frame_size;
+    int32_t update_frame_size;
     do {
         frame_size = parse_vgm();
-        // workaround
-        if(frame_size > FRAME_SIZE_MAX) frame_size = FRAME_SIZE_MAX;
-        // get sampling
-        SN76489_Update(sn76489, (int **)buflr, frame_size);
-        YM2612_Update((int **)buflr, frame_size);
-        YM2612_DacAndTimers_Update((int **)buflr, frame_size);
-        for(uint32_t i = 0; i < frame_size; i++) {
-            short d[STEREO];
-            d[0] = audio_write_sound_stereo(buflr[0][i]);
-            d[1] = audio_write_sound_stereo(buflr[1][i]);
-            i2s_write((i2s_port_t)i2s_num, d, sizeof(short) * STEREO, &bytes_written, portMAX_DELAY);
-        }
+        last_frame_size = frame_size;
+        do {
+            if(last_frame_size > FRAME_SIZE_MAX) {
+                update_frame_size = FRAME_SIZE_MAX;
+            } else {
+                update_frame_size = last_frame_size;
+            }
+            // get sampling
+            SN76489_Update(sn76489, (int **)buflr, update_frame_size);
+            YM2612_Update((int **)buflr, update_frame_size);
+            YM2612_DacAndTimers_Update((int **)buflr, update_frame_size);
+            for(uint32_t i = 0; i < update_frame_size; i++) {
+                short d[STEREO];
+                d[0] = audio_write_sound_stereo(buflr[0][i]);
+                d[1] = audio_write_sound_stereo(buflr[1][i]);
+                i2s_write((i2s_port_t)i2s_num, d, sizeof(short) * STEREO, &bytes_written, portMAX_DELAY);
+            }
+            last_frame_size -= FRAME_SIZE_MAX;
+        } while(last_frame_size > 0);
         frame_all += frame_size;
     } while(!vgmend);
 

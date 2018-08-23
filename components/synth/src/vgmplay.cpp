@@ -13,7 +13,7 @@ extern "C" {
 #include "vgmplay.h"
 
 #define SAMPLING_RATE 44100
-#define FRAME_SIZE_MAX 1
+#define FRAME_SIZE_MAX 4096
 
 #define STEREO 2
 #define MONO 0
@@ -34,7 +34,7 @@ SN76489_Context *sn76489;
 
 void vgm_load(void) {
     vgm = (unsigned char *) malloc(3000000);
-    int fd = open("../../vgm/01.vgm", O_RDONLY);
+    int fd = open("../../vgm/02.vgm", O_RDONLY);
     assert(fd != -1);
     read(fd, vgm, 3000000);
     close(fd);
@@ -177,17 +177,29 @@ int main(void)
     int fd = open("../../vgm/s16le.pcm", O_CREAT | O_WRONLY | O_TRUNC, 0666);
     assert(fd != -1);
 
+    int32_t last_frame_size;
+    int32_t update_frame_size;
     do {
         frame_size = parse_vgm();
-        for(u_int32_t i = 0; i < frame_size; i++) {
-            SN76489_Update(sn76489, (int **)buflr, FRAME_SIZE_MAX);
-            YM2612_Update((int **)buflr, FRAME_SIZE_MAX);
-            YM2612_DacAndTimers_Update((int **)buflr, FRAME_SIZE_MAX);
-            short d[STEREO];
-            d[0] = audio_write_sound_stereo(buflr[0][0]);
-            d[1] = audio_write_sound_stereo(buflr[1][0]);
-            write(fd, d, sizeof(short) * STEREO);
-        }
+        last_frame_size = frame_size;
+        do {
+            if(last_frame_size > FRAME_SIZE_MAX) {
+                update_frame_size = FRAME_SIZE_MAX;
+            } else {
+                update_frame_size = last_frame_size;
+            }
+            // get sampling
+            SN76489_Update(sn76489, (int **)buflr, update_frame_size);
+            YM2612_Update((int **)buflr, update_frame_size);
+            YM2612_DacAndTimers_Update((int **)buflr, update_frame_size);
+            for(uint32_t i = 0; i < update_frame_size; i++) {
+                short d[STEREO];
+                d[0] = audio_write_sound_stereo(buflr[0][i]);
+                d[1] = audio_write_sound_stereo(buflr[1][i]);
+                write(fd, d, sizeof(short) * STEREO);
+            }
+            last_frame_size -= FRAME_SIZE_MAX;
+        } while(last_frame_size > 0);
         frame_all += frame_size;
     } while(!vgmend);
 
