@@ -59,8 +59,7 @@ void vgm_load(void) {
 
 u_int8_t get_vgm_ui8()
 {
-    u_int8_t ret = vgm[vgmpos++];
-    return ret;
+    return vgm[vgmpos++];
 }
 
 u_int16_t get_vgm_ui16()

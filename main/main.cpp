@@ -51,8 +51,7 @@ uint8_t *get_vgmdata()
 
 uint8_t get_vgm_ui8()
 {
-    uint8_t ret = vgm[vgmpos++];
-    return ret;
+    return vgm[vgmpos++];
 }
 
 uint16_t get_vgm_ui16()
@@ -156,7 +155,7 @@ void setup()
 
     // Initialize
     M5.Lcd.fillScreen(BLACK);
-    M5.Lcd.print("MEGADRIVE/GENESIS sound emulation by SN76496/YM2612.\n\n");
+    M5.Lcd.print("MEGADRIVE/GENESIS sound emulation by M5Stack.\n\n");
 
     // Load vgm data
     vgm = get_vgmdata();
