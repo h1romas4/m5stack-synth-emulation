@@ -8,12 +8,12 @@
 #include <assert.h>
 #include "ym2612.hpp"
 extern "C" {
-#include "sn76496.h"
+#include "sn76489.h"
 }
 #include "vgmplay.h"
 
 #define SAMPLING_RATE 44100
-#define FRAME_SIZE_MAX 512
+#define FRAME_SIZE_MAX 1
 
 #define STEREO 2
 #define MONO 0
@@ -21,14 +21,20 @@ extern "C" {
 VGM_HEADER *vgmheader;
 u_int8_t *vgm;
 u_int32_t vgmpos = 0x40;
+u_int32_t datpos;
+u_int32_t pcmpos;
+u_int32_t pcmoffset;
+
 bool vgmend = false;
 
 u_int32_t clock_sn76489;
 u_int32_t clock_ym2612;
 
+SN76489_Context *sn76489;
+
 void vgm_load(void) {
     vgm = (unsigned char *) malloc(3000000);
-    int fd = open("../../vgm/03.vgm", O_RDONLY);
+    int fd = open("../../vgm/01.vgm", O_RDONLY);
     assert(fd != -1);
     read(fd, vgm, 3000000);
     close(fd);
@@ -41,6 +47,9 @@ void vgm_load(void) {
 
     clock_sn76489 = vgmheader->lngHzPSG;
     clock_ym2612 = vgmheader->lngHzYM2612;
+    if(clock_ym2612 == 0) clock_ym2612 = 7670453;
+    if(clock_sn76489 == 0) clock_ym2612 = 3579545;
+
     vgmpos = vgmheader->lngDataOffset;
 
     printf("vgmpos %x\n", vgmheader->lngDataOffset);
@@ -76,7 +85,7 @@ u_int16_t parse_vgm()
     switch (command) {
         case 0x50:
             dat = get_vgm_ui8();
-            SN76496Write(dat);
+            SN76489_Write(sn76489, dat);
             break;
         case 0x52:
         case 0x53:
@@ -98,9 +107,9 @@ u_int16_t parse_vgm()
             vgmend = true;
             break;
         case 0x67:
-            printf("PCM not implement\n");
-            printf("pcm %x\n", get_vgm_ui8()); // 0x66
-            printf("pcm %x\n", get_vgm_ui8()); // data type
+            get_vgm_ui8(); // 0x66
+            get_vgm_ui8(); // 0x00 data type
+            datpos = vgmpos + 4;
             vgmpos += get_vgm_ui32(); // size of data, in bytes
             break;
         case 0x70: case 0x71: case 0x72: case 0x73: case 0x74: case 0x75: case 0x76: case 0x77:
@@ -109,12 +118,14 @@ u_int16_t parse_vgm()
             break;
         case 0x80: case 0x81: case 0x82: case 0x83: case 0x84: case 0x85: case 0x86: case 0x87:
         case 0x88: case 0x89: case 0x8a: case 0x8b: case 0x8c: case 0x8d: case 0x8e: case 0x8f:
-            printf("PCM not implement1\n");
             wait = (command & 0x0f);
+            YM2612_Write(0, 0x2a);
+            YM2612_Write(1, vgm[datpos + pcmpos + pcmoffset]);
+            pcmoffset++;
             break;
         case 0xe0:
-            printf("PCM not implement2\n");
-            get_vgm_ui32();
+            pcmpos = get_vgm_ui32();
+            pcmoffset = 0;
             break;
         default:
             printf("unknown cmd at 0x%x: 0x%x\n", vgmpos, vgm[vgmpos]);
@@ -145,13 +156,12 @@ int main(void)
     vgm_load();
 
     // // Reset for NTSC Genesis/Megadrive
-    SN76496_init(clock_sn76489, SAMPLING_RATE);
+    sn76489 = SN76489_Init(clock_sn76489, SAMPLING_RATE);
+    SN76489_Reset(sn76489);
     YM2612_Init(clock_ym2612, SAMPLING_RATE, 0);
 
     // malloc sound buffer
     int **buflr;
-    short *bufmn;
-    int **bufdummy;
 
     buflr = (int **)malloc(sizeof(int) * STEREO);
     assert(buflr != NULL);
@@ -159,8 +169,6 @@ int main(void)
     assert(buflr[0] != NULL);
     buflr[1] = (int *)malloc(sizeof(int) * FRAME_SIZE_MAX);
     assert(buflr[1] != NULL);
-    bufmn = (short *)malloc(sizeof(short) * FRAME_SIZE_MAX);
-    assert(bufmn != NULL);
 
     size_t bytes_written = 0;
     u_int16_t frame_size = 0;
@@ -172,31 +180,14 @@ int main(void)
 
     do {
         frame_size = parse_vgm();
-        if(frame_size == 0) {
-            YM2612_Update((int **)bufdummy, 0);
-            SN76496Update((short *)bufdummy, 0, 0);
-        } else {
-            frame_size_count += frame_size;
-        }
-        while(frame_size_count >= FRAME_SIZE_MAX || vgmend) {
-            int16_t frame_update_count;
-            if(frame_size_count - FRAME_SIZE_MAX > 0) {
-                frame_update_count = FRAME_SIZE_MAX;
-            } else {
-                frame_update_count = frame_size_count;
-            }
-            YM2612_ClearBuffer((int **)buflr, frame_update_count);
-            YM2612_Update((int **)buflr, frame_update_count);
-            memset((short *)bufmn, 0, sizeof(short) * frame_update_count);
-            SN76496Update((short *)bufmn, frame_update_count, 0);
-            for(int i = 0; i < frame_update_count; i++) {
-                short d[2];
-                d[0] = audio_write_sound_stereo(buflr[0][i] + bufmn[i]);
-                d[1] = audio_write_sound_stereo(buflr[1][i] + bufmn[i]);
-                write(fd, d, sizeof(short) * STEREO);
-            }
-            frame_size_count -= frame_update_count;
-            if(frame_size_count <= 0) break;
+        for(u_int32_t i = 0; i < frame_size; i++) {
+            SN76489_Update(sn76489, (int **)buflr, FRAME_SIZE_MAX);
+            YM2612_Update((int **)buflr, FRAME_SIZE_MAX);
+            YM2612_DacAndTimers_Update((int **)buflr, FRAME_SIZE_MAX);
+            short d[STEREO];
+            d[0] = audio_write_sound_stereo(buflr[0][0]);
+            d[1] = audio_write_sound_stereo(buflr[1][0]);
+            write(fd, d, sizeof(short) * STEREO);
         }
         frame_all += frame_size;
     } while(!vgmend);
@@ -206,9 +197,9 @@ int main(void)
     free(buflr[0]);
     free(buflr[1]);
     free(buflr);
-    free(bufmn);
 
     YM2612_End();
+    SN76489_Shutdown(sn76489);
 
     printf("end!\n");
 

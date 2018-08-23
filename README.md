@@ -1,8 +1,6 @@
 # m5stack-synth-emulation
 
-GENESIS/MEGADRIVE(YM2612+SN76496) VGM player on ESP32/M5Stack
-
-* YM2612 PCM not supported, yet
+GENESIS/MEGADRIVE(YM2612+SN76489) VGM player on ESP32/M5Stack
 
 ## Demo
 
@@ -12,7 +10,7 @@ GENESIS/MEGADRIVE(YM2612+SN76496) VGM player on ESP32/M5Stack
 
 * M5Stack
 * [esp32-idf setup](https://esp-idf.readthedocs.io/en/latest/get-started/index.html#setup-toolchain)
-* GENESIS/MEGADRIVE(YM2612+SN76496) VGM format file
+* GENESIS/MEGADRIVE(YM2612+SN76489) VGM format file
 
 ## Build
 
@@ -42,5 +40,5 @@ Enjoy!
 
 ## Thanks!
 
-* [sn76496.c](https://github.com/notaz/picodrive/blob/master/pico/sound/sn76496.c)
+* [sn76489.c](https://github.com/vgmrips/vgmplay/blob/master/VGMPlay/chips/sn76489.c)
 * [ym2612.cpp](https://github.com/lutris/gens/blob/master/src/gens/gens_core/sound/ym2612.cpp)
