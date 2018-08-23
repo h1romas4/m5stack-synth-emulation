@@ -9,7 +9,7 @@ extern "C" {
 }
 
 #define SAMPLING_RATE 44100
-#define FRAME_SIZE_MAX 1
+#define FRAME_SIZE_MAX 4096
 
 #define STEREO 2
 #define MONO 0
@@ -224,14 +224,16 @@ void loop()
 
     do {
         frame_size = parse_vgm();
+        // workaround
+        if(frame_size > FRAME_SIZE_MAX) frame_size = FRAME_SIZE_MAX;
+        // get sampling
+        SN76489_Update(sn76489, (int **)buflr, frame_size);
+        YM2612_Update((int **)buflr, frame_size);
+        YM2612_DacAndTimers_Update((int **)buflr, frame_size);
         for(uint32_t i = 0; i < frame_size; i++) {
-            // get sampling
-            SN76489_Update(sn76489, (int **)buflr, FRAME_SIZE_MAX);
-            YM2612_Update((int **)buflr, FRAME_SIZE_MAX);
-            YM2612_DacAndTimers_Update((int **)buflr, FRAME_SIZE_MAX);
             short d[STEREO];
-            d[0] = audio_write_sound_stereo(buflr[0][0]);
-            d[1] = audio_write_sound_stereo(buflr[1][0]);
+            d[0] = audio_write_sound_stereo(buflr[0][i]);
+            d[1] = audio_write_sound_stereo(buflr[1][i]);
             i2s_write((i2s_port_t)i2s_num, d, sizeof(short) * STEREO, &bytes_written, portMAX_DELAY);
         }
         frame_all += frame_size;

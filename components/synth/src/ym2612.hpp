@@ -30,7 +30,7 @@ extern "C" {
 #endif
 
 // Change it if you need to do long update
-#define	MAX_UPDATE_LENGTH   512
+#define	MAX_UPDATE_LENGTH   4096
 
 // Gens always uses 16 bits sound (in 32 bits buffer) and do the convertion later if needed.
 #define OUTPUT_BITS         16
