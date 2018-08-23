@@ -9,7 +9,7 @@ extern "C" {
 }
 
 #define SAMPLING_RATE 44100
-#define FRAME_SIZE_MAX 512
+#define FRAME_SIZE_MAX 1
 
 #define STEREO 2
 #define MONO 0
@@ -17,6 +17,9 @@ extern "C" {
 uint8_t *vgm;
 uint32_t vgmpos = 0x40;
 bool vgmend = false;
+uint32_t datpos;
+uint32_t pcmpos;
+uint32_t pcmoffset;
 
 uint32_t clock_sn76489;
 uint32_t clock_ym2612;
@@ -93,9 +96,9 @@ uint16_t parse_vgm()
             vgmend = true;
             break;
         case 0x67:
-            // PCM not implement
             get_vgm_ui8(); // 0x66
-            get_vgm_ui8(); // data type
+            get_vgm_ui8(); // 0x00 data type
+            datpos = vgmpos + 4;
             vgmpos += get_vgm_ui32(); // size of data, in bytes
             break;
         case 0x70: case 0x71: case 0x72: case 0x73: case 0x74: case 0x75: case 0x76: case 0x77:
@@ -104,12 +107,14 @@ uint16_t parse_vgm()
             break;
         case 0x80: case 0x81: case 0x82: case 0x83: case 0x84: case 0x85: case 0x86: case 0x87:
         case 0x88: case 0x89: case 0x8a: case 0x8b: case 0x8c: case 0x8d: case 0x8e: case 0x8f:
-            // PCM not implement
             wait = (command & 0x0f);
+            YM2612_Write(0, 0x2a);
+            YM2612_Write(1, vgm[datpos + pcmpos + pcmoffset]);
+            pcmoffset++;
             break;
         case 0xe0:
-            // PCM not implement
-            get_vgm_ui32();
+            pcmpos = get_vgm_ui32();
+            pcmoffset = 0;
             break;
         default:
             printf("unknown cmd at 0x%x: 0x%x\n", vgmpos, vgm[vgmpos]);
@@ -159,6 +164,9 @@ void setup()
     vgmpos = 0x2C; clock_ym2612 = get_vgm_ui32();
     vgmpos = 0x34; vgmpos = 0x34 + get_vgm_ui32();
 
+    if(clock_ym2612 == 0) clock_ym2612 = 7670453;
+    if(clock_sn76489 == 0) clock_ym2612 = 3579545;
+
     printf("clock_sn76489 : %d\n", clock_sn76489);
     printf("clock_ym2612 : %d\n", clock_ym2612);
     printf("vgmpos : %x\n", vgmpos);
@@ -195,11 +203,7 @@ void loop()
     size_t bytes_written = 0;
 
     uint16_t frame_size;
-    uint16_t frame_size_count = 0;
     uint32_t frame_all = 0;
-
-    short csize = 0;
-    short bsize = 0;
 
     // malloc sound buffer
     int **buflr;
@@ -224,35 +228,20 @@ void loop()
         frame_size = parse_vgm();
         if(frame_size == 0) {
             YM2612_Update((int **)bufdummy, 0);
-            SN76496Update((short *)bufdummy, 0, 0);
-        } else {
-            frame_size_count += frame_size;
+            // SN76496Update((short *)bufdummy, 0, 0);
         }
-        while(frame_size_count >= FRAME_SIZE_MAX || vgmend) {
-            int16_t frame_update_count;
-            if(frame_size_count - FRAME_SIZE_MAX > 0) {
-                frame_update_count = FRAME_SIZE_MAX;
-            } else {
-                frame_update_count = frame_size_count;
-            }
-            YM2612_ClearBuffer((int **)buflr, frame_update_count);
-            YM2612_Update((int **)buflr, frame_update_count);
-            memset((short *)bufmn, 0, sizeof(short) * frame_update_count);
-            SN76496Update((short *)bufmn, frame_update_count, 0);
-
-            csize = (unsigned short)buflr[0][0] / (128 + 64);
-            M5.Lcd.fillCircle(320 / 2, 240 / 2, bsize, BLACK);
-            M5.Lcd.fillCircle(320 / 2, 240 / 2, csize, GREENYELLOW);
-            bsize = csize;
-
-            for(int i = 0; i < frame_update_count; i++) {
-                short d[2];
-                d[0] = audio_write_sound_stereo(buflr[0][i] + bufmn[i]);
-                d[1] = audio_write_sound_stereo(buflr[1][i] + bufmn[i]);
-                i2s_write((i2s_port_t)i2s_num, d, sizeof(short) * STEREO, &bytes_written, portMAX_DELAY);
-            }
-            frame_size_count -= frame_update_count;
-            if(frame_size_count <= 0) break;
+        for(uint32_t i = 0; i < frame_size; i++) {
+            // get sampling
+            YM2612_ClearBuffer((int **)buflr, FRAME_SIZE_MAX);
+            YM2612_Update((int **)buflr, FRAME_SIZE_MAX);
+            YM2612_DacAndTimers_Update((int **)buflr, FRAME_SIZE_MAX);
+            memset((short *)bufmn, 0x00, FRAME_SIZE_MAX);
+            // SN76496Update((short *)bufmn, FRAME_SIZE_MAX, 0);
+            // send sampling
+            short d[STEREO];
+            d[0] = audio_write_sound_stereo(buflr[0][0] + bufmn[0]);
+            d[1] = audio_write_sound_stereo(buflr[1][0] + bufmn[0]);
+            i2s_write((i2s_port_t)i2s_num, d, sizeof(short) * STEREO, &bytes_written, portMAX_DELAY);
         }
         frame_all += frame_size;
     } while(!vgmend);
