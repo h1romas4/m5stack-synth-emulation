@@ -258,7 +258,7 @@ static int int_cnt;	// Interpolation calculation
 
 int YM2612_Enable;
 int YM2612_Improv;
-int DAC_Enable;
+int DAC_Enable = 1;
 int *YM_Buf[2];
 int YM_Len = 0;
 
@@ -2419,6 +2419,7 @@ int YM2612_Restore_Full(gsx_v7_ym2612 *save)
 
 /* Gens */
 
+#endif
 void YM2612_DacAndTimers_Update(int **buffer, int length)
 {
 	int *bufL, *bufR;
@@ -2467,7 +2468,6 @@ void YM2612_DacAndTimers_Update(int **buffer, int length)
 		}
 	}
 }
-#endif
 
 
 void YM2612_Special_Update(void)
