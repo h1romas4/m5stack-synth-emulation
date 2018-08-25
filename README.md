@@ -16,7 +16,7 @@ GENESIS/MEGADRIVE(YM2612+SN76489) VGM player on ESP32/M5Stack
 
 ```
 git clone --recursive https://github.com/h1romas4/m5stack-synth-emulation.git
-cd m5stack-synth-emulation.git
+cd m5stack-synth-emulation
 make
 ```
 
@@ -34,7 +34,7 @@ flashrom.sh example.vgm   # not vgz
 make flash monitor
 ```
 
-![](https://raw.githubusercontent.com/h1romas4/m5stack-synth-emulation/master/assets/m5stack-synth.jpg)
+![](https://raw.githubusercontent.com/h1romas4/m5stack-synth-emulation/master/assets/m5stack-synth-02.jpg)
 
 Enjoy!
 
