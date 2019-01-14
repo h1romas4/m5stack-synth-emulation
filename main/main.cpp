@@ -9,7 +9,7 @@ extern "C" {
 }
 
 #define SAMPLING_RATE 44100
-#define FRAME_SIZE_MAX 4096
+#define FRAME_SIZE_MAX 2048
 
 #define STEREO 2
 #define MONO 0
