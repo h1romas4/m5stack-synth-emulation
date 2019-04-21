@@ -17,6 +17,7 @@ extern "C" {
 uint8_t *vgm;
 uint32_t vgmpos = 0x40;
 bool vgmend = false;
+uint32_t vgmloopoffset;
 uint32_t datpos;
 uint32_t pcmpos;
 uint32_t pcmoffset;
@@ -94,7 +95,11 @@ uint16_t parse_vgm()
             wait = 882;
             break;
         case 0x66:
-            vgmend = true;
+            if(vgmloopoffset == 0) {
+                vgmend = true;
+            } else {
+                vgmpos = vgmloopoffset;
+            }
             break;
         case 0x67:
             get_vgm_ui8(); // 0x66
@@ -163,6 +168,7 @@ void setup()
     // read vgm header
     vgmpos = 0x0C; clock_sn76489 = get_vgm_ui32();
     vgmpos = 0x2C; clock_ym2612 = get_vgm_ui32();
+    vgmpos = 0x1c; vgmloopoffset = get_vgm_ui32();
     vgmpos = 0x34; vgmpos = 0x34 + get_vgm_ui32();
 
     if(clock_ym2612 == 0) clock_ym2612 = 7670453;
