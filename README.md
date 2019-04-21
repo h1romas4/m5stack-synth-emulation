@@ -9,7 +9,7 @@ GENESIS/MEGADRIVE(YM2612+SN76489) VGM player on ESP32/M5Stack
 ## Require
 
 * M5Stack
-* [esp32-idf setup](https://esp-idf.readthedocs.io/en/latest/get-started/index.html#setup-toolchain)
+* [esp32-idf v3.1.3 setup](https://docs.espressif.com/projects/esp-idf/en/v3.1.3/get-started/index.html)
 * GENESIS/MEGADRIVE(YM2612+SN76489) VGM format file
 
 ## Build
