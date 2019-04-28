@@ -25,7 +25,7 @@ make
 ```
 mv example.vgz example.vgm.gz
 gzip -d example.vgm.gz
-flashrom.sh example.vgm   # not vgz
+./flashrom.sh example.vgm   # not vgz
 ```
 
 ## Play music
