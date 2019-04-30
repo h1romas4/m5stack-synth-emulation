@@ -1,5 +1,5 @@
 // for vgm testing
-// make clean && make && ./vgmplay && ffplay -f s16le -ar 44100 -ac 2 ../../vgm/s16le.pcm
+// make clean && make && ./vgmplay && ffplay -f u16le -ar 44100 -ac 2 ../../vgm/s16le.pcm
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -34,7 +34,7 @@ SN76489_Context *sn76489;
 
 void vgm_load(void) {
     vgm = (unsigned char *) malloc(3000000);
-    int fd = open("../../vgm/02.vgm", O_RDONLY);
+    int fd = open("../../vgm/kanon2612.vgm", O_RDONLY);
     assert(fd != -1);
     read(fd, vgm, 3000000);
     close(fd);
@@ -48,7 +48,7 @@ void vgm_load(void) {
     clock_sn76489 = vgmheader->lngHzPSG;
     clock_ym2612 = vgmheader->lngHzYM2612;
     if(clock_ym2612 == 0) clock_ym2612 = 7670453;
-    if(clock_sn76489 == 0) clock_ym2612 = 3579545;
+    if(clock_sn76489 == 0) clock_sn76489 = 3579545;
 
     vgmpos = vgmheader->lngDataOffset;
 
@@ -139,12 +139,16 @@ short audio_write_sound_stereo(int sample32)
 {
     short sample16;
 
-    if (sample32 < -0x7FFF)
+    if (sample32 < -0x7FFF) {
         sample16 = -0x7FFF;
-    else if (sample32 > 0x7FFF)
+    } else if (sample32 > 0x7FFF) {
         sample16 = 0x7FFF;
-    else
+    } else {
         sample16 = (short)(sample32);
+    }
+
+    // for I2S_MODE_DAC_BUILT_IN
+    sample16 = sample16 ^ 0x8000U;
 
     return sample16;
 }

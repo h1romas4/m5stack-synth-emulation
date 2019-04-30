@@ -172,7 +172,7 @@ void setup()
     vgmpos = 0x34; vgmpos = 0x34 + get_vgm_ui32();
 
     if(clock_ym2612 == 0) clock_ym2612 = 7670453;
-    if(clock_sn76489 == 0) clock_ym2612 = 3579545;
+    if(clock_sn76489 == 0) clock_sn76489 = 3579545;
 
     printf("clock_sn76489 : %d\n", clock_sn76489);
     printf("clock_ym2612 : %d\n", clock_ym2612);
