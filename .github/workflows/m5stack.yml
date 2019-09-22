@@ -6,9 +6,11 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: docker://espressif/esp32-ci-env
-    - name: test
+    - uses: actions/checkout@v1
+    - name: Docker build
+      uses: docker://espressif/esp32-ci-env
       run: |
         pwd
         ls -laF
         ls -laF /opt
+        ls -laF /github/workspace
