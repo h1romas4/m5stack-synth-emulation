@@ -18,5 +18,6 @@ jobs:
     - name: Build
       run: |
         export PATH=./xtensa-esp32-elf/bin:${PATH}
-        export IDF_PATH=./esp-idf
+        echo ${PATH}
+        ls -laF ./xtensa-esp32-elf/bin
         make
