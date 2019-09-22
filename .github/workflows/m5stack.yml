@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: docker://espressif/esp32-ci-env
-    - runs: |
+    - run: |
       echo $HOME
       ls -laF
       ls -laF /opt
