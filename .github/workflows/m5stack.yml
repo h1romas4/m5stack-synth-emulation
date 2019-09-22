@@ -9,6 +9,6 @@ jobs:
     - uses: docker://espressif/esp32-ci-env
     - name: test
       run: |
-      pwd
-      ls -laF
-      ls -laF /opt
+        pwd
+        ls -laF
+        ls -laF /opt
