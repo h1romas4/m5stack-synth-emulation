@@ -7,10 +7,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
-    - name: Docker build
-      uses: docker://espressif/esp32-ci-env
+    - name: tool chain setup
       run: |
         pwd
         ls -laF
-        ls -laF /opt
-        ls -laF /github/workspace
+        sudo apt-get install gcc git wget make libncurses-dev flex bison gperf python python-serial
+        wget https://dl.espressif.com/dl/xtensa-esp32-elf-linux64-1.22.0-80-g6c4433a-5.2.0.tar.gz
+        tar zxvf xtensa-esp32-elf-linux64-1.22.0-80-g6c4433a-5.2.0.tar.gz
+        ls -laF
