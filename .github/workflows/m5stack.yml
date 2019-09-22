@@ -1,0 +1,13 @@
+name: M5Stack CI
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: docker://espressif/esp32-ci-env
+    - runs: |
+      echo $HOME
+      ls -laF
+      ls -laF /opt
