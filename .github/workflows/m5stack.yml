@@ -16,7 +16,9 @@ jobs:
         export PATH=./xtensa-esp32-elf/bin:${PATH}
         git clone -b v3.1.3 --recursive https://github.com/espressif/esp-idf.git
         export IDF_PATH=./esp-idf
+        ls -laF ${IDF_PATH}
 
     - name: Build
       run: |
+        ls -laF ${IDF_PATH}
         make
