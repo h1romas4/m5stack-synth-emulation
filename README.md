@@ -14,7 +14,7 @@ GENESIS/MEGADRIVE(YM2612+SN76489) VGM player on ESP32/M5Stack
 
 ## Build
 
-![](https://github.com/h1romas4/m5stack-synth-emulation/workflows/M5Stack CI/badge.svg)
+![](https://github.com/h1romas4/m5stack-synth-emulation/workflows/M5Stack%20CI/badge.svg)
 
 ```
 git clone --recursive https://github.com/h1romas4/m5stack-synth-emulation.git
