@@ -142,11 +142,12 @@ static int *SIN_TAB[SIN_LENGTH];			// SINUS TABLE (pointer on TL TABLE)
 
 #ifdef ESP32_SYNTH
 static int *TL_TAB;               			// TOTAL LEVEL TABLE (positif and minus)
+static unsigned int *ENV_TAB;           	// ENV CURVE TABLE (attack & decay)
 #else
 static int TL_TAB[TL_LENGTH * 2];			// TOTAL LEVEL TABLE (positif and minus)
+static unsigned int ENV_TAB[2 * ENV_LENGTH + 8];	// ENV CURVE TABLE (attack & decay)
 #endif
 
-static unsigned int ENV_TAB[2 * ENV_LENGTH + 8];	// ENV CURVE TABLE (attack & decay)
 
 //static unsigned int ATTACK_TO_DECAY[ENV_LENGTH];	// Conversion from attack to decay phase
 static unsigned int DECAY_TO_ATTACK[ENV_LENGTH];	// Conversion from decay to attack phase
@@ -1668,6 +1669,11 @@ int YM2612_Init(int Clock, int Rate, int Interpolation)
 	// ENV_TAB[0] -> ENV_TAB[ENV_LENGTH - 1]                                = attack curve
 	// ENV_TAB[ENV_LENGTH] -> ENV_TAB[2 * ENV_LENGTH - 1]   = decay curve
 
+    #ifdef ESP32_SYNTH
+    ENV_TAB = (unsigned int *)heap_caps_malloc((2 * ENV_LENGTH + 8) * sizeof(unsigned int), MALLOC_CAP_8BIT);
+    if(ENV_TAB == NULL) printf("ENV_TAB alloc error!\n");
+    memset(ENV_TAB, 0x00, (2 * ENV_LENGTH + 8) * sizeof(unsigned int));
+    #endif
 	for (i = 0; i < ENV_LENGTH; i++)
 	{
 		// Attack curve (x^8 - music level 2 Vectorman 2)

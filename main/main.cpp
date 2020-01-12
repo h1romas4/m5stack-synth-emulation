@@ -145,6 +145,7 @@ void init_dac(void)
         .dma_buf_count = 16,
         .dma_buf_len = 512,
         .use_apll = false,
+        .tx_desc_auto_clear = true,
         .fixed_mclk = 0
     };
 

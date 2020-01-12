@@ -4,13 +4,14 @@ GENESIS/MEGADRIVE(YM2612+SN76489) VGM player on ESP32/M5Stack
 
 ## Demo
 
+![https://www.youtube.com/watch?v=dunNtkFS8gc](https://raw.githubusercontent.com/h1romas4/m5stack-synth-emulation/master/assets/m5stack-synth-02.jpg)
+
 [https://www.youtube.com/watch?v=dunNtkFS8gc](https://www.youtube.com/watch?v=dunNtkFS8gc)
 
 ## Require
 
 * M5Stack
-* [esp32-idf v3.1.3 setup](https://docs.espressif.com/projects/esp-idf/en/v3.1.3/get-started/index.html)
-* GENESIS/MEGADRIVE(YM2612+SN76489) VGM format file
+* [esp32-idf v3.3.1 setup](https://docs.espressif.com/projects/esp-idf/en/v3.3.1/get-started/index.html)
 
 ## Build
 
@@ -25,9 +26,7 @@ make
 ## Upload .vgm file to M5Stack flash
 
 ```
-mv example.vgz example.vgm.gz
-gzip -d example.vgm.gz
-./flashrom.sh example.vgm   # not vgz
+./flashrom.sh vgm/ym2612.vgm
 ```
 
 ## Play music
@@ -36,9 +35,15 @@ gzip -d example.vgm.gz
 make flash monitor
 ```
 
-![](https://raw.githubusercontent.com/h1romas4/m5stack-synth-emulation/master/assets/m5stack-synth-02.jpg)
-
 Enjoy!
+
+## Dependencies
+
+|name|version|
+|-|-|
+|[esp-idf](https://docs.espressif.com/projects/esp-idf/en/v3.3.1/get-started/index.html)|3.3.1|
+|[esp32-arduino](https://github.com/espressif/arduino-esp32)|1.0.4|
+|[m5stack](https://github.com/m5stack/M5Stack)|0.2.9|
 
 ## Thanks!
 
