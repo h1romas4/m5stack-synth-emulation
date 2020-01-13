@@ -45,6 +45,10 @@ Enjoy!
 |[esp32-arduino](https://github.com/espressif/arduino-esp32)|1.0.4|
 |[m5stack](https://github.com/m5stack/M5Stack)|0.2.9|
 
+## License
+
+[GNU General Public License v2.0](https://github.com/h1romas4/m5stack-synth-emulation/blob/master/LICENSE.txt)
+
 ## Thanks!
 
 * [sn76489.c](https://github.com/vgmrips/vgmplay/blob/master/VGMPlay/chips/sn76489.c)
