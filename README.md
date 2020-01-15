@@ -37,7 +37,31 @@ make
 make flash monitor
 ```
 
-Enjoy!
+## [Binary release](https://github.com/h1romas4/m5stack-synth-emulation/releases)
+
+|address|module|
+|-|-|
+|`0x1000`|`build/bootloader/bootloader.bin`|
+|`0x8000`|`build/partitions.bin`|
+|`0xe000`|`build/ota_data_initial.bin`|
+|`0x10000`|`build/m5stack-synth-emulation.bin`|
+|`0x211000`|`vgm/ym2612.vgm`|
+
+```
+python ${IDF_PATH}/components/esptool_py/esptool/esptool.py \
+    --chip esp32 \
+    --port <SET IT TO YOUR COM PORT> \
+    --baud 921600 \
+    --before default_reset \
+    --after hard_reset write_flash -z \
+    --flash_mode dio --flash_freq 80m \
+    --flash_size detect \
+    0x1000 ./build/bootloader/bootloader.bin \
+    0x8000 ./build/partitions.bin \
+    0xe000 ./build/ota_data_initial.bin \
+    0x10000 ./build/m5stack-synth-emulation.bin \
+    0x211000 vgm/ym2612.vgm
+```
 
 ## Dependencies
 

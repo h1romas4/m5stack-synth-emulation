@@ -1,0 +1,42 @@
+name: M5Stack Release CI
+
+on:
+  push:
+    tags:
+    - '*'
+
+jobs:
+  build:
+    runs-on: ubuntu-18.04
+    steps:
+    - uses: actions/checkout@v1
+      with:
+        submodules: recursive
+
+    - name: esp-idf Toolchain Setup
+      run: |
+        sudo apt-get install gcc git wget make libncurses-dev flex bison gperf python python-pip python-setuptools python-serial python-cryptography python-future
+        wget https://dl.espressif.com/dl/xtensa-esp32-elf-linux64-1.22.0-80-g6c4433a-5.2.0.tar.gz
+        tar zxvf xtensa-esp32-elf-linux64-1.22.0-80-g6c4433a-5.2.0.tar.gz
+
+    - name: Build
+      run: |
+        export PATH=$(pwd)/xtensa-esp32-elf/bin:${PATH}
+        export IDF_PATH=$(pwd)/esp-idf
+        python -m pip install --user -r $IDF_PATH/requirements.txt
+        make
+
+    - name: Archive
+      run: |
+        tar zcvf release.tar.gz \
+            build/ota_data_initial.bin \
+            build/bootloader/bootloader.bin \
+            build/m5stack-synth-emulation.bin \
+            build/partitions.bin \
+            vgm/sn76489.vgm \
+            vgm/ym2612.vgm
+
+    - uses: ncipollo/release-action@v1
+      with:
+        artifacts: "release.tar.gz"
+        token: ${{ secrets.GITHUB_TOKEN }}
