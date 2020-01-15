@@ -60,7 +60,7 @@ python ${IDF_PATH}/components/esptool_py/esptool/esptool.py \
     0x8000 ./build/partitions.bin \
     0xe000 ./build/ota_data_initial.bin \
     0x10000 ./build/m5stack-synth-emulation.bin \
-    0x211000 vgm/ym2612.vgm
+    0x211000 ./vgm/ym2612.vgm
 ```
 
 ## Dependencies
