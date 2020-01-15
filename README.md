@@ -13,6 +13,11 @@ GENESIS/MEGADRIVE(YM2612+SN76489) VGM player on ESP32/M5Stack
 * M5Stack
 * [esp32-idf toolchain setup](https://docs.espressif.com/projects/esp-idf/en/stable/get-started/index.html#setup-toolchain)
 
+```
+$ xtensa-esp32-elf-gcc -v
+gcc version 5.2.0 (crosstool-NG crosstool-ng-1.22.0-80-g6c4433a)
+```
+
 ## Build
 
 ![](https://github.com/h1romas4/m5stack-synth-emulation/workflows/M5Stack%20CI/badge.svg)
