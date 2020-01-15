@@ -11,7 +11,7 @@ GENESIS/MEGADRIVE(YM2612+SN76489) VGM player on ESP32/M5Stack
 ## Require
 
 * M5Stack
-* [esp32-idf v3.2.3 setup](https://docs.espressif.com/projects/esp-idf/en/v3.2.3/get-started/index.html)
+* [esp32-idf toolchain setup](https://docs.espressif.com/projects/esp-idf/en/stable/get-started/index.html#setup-toolchain)
 
 ## Build
 
@@ -20,6 +20,8 @@ GENESIS/MEGADRIVE(YM2612+SN76489) VGM player on ESP32/M5Stack
 ```
 git clone --recursive https://github.com/h1romas4/m5stack-synth-emulation.git
 cd m5stack-synth-emulation
+# This repository includes eps-idf v3.2.3
+export IDF_PATH=$(pwd)/esp-idf
 make
 ```
 

@@ -15,7 +15,6 @@ jobs:
         sudo apt-get install gcc git wget make libncurses-dev flex bison gperf python python-pip python-setuptools python-serial python-cryptography python-future
         wget https://dl.espressif.com/dl/xtensa-esp32-elf-linux64-1.22.0-80-g6c4433a-5.2.0.tar.gz
         tar zxvf xtensa-esp32-elf-linux64-1.22.0-80-g6c4433a-5.2.0.tar.gz
-        git clone -b v3.2.3 --recursive https://github.com/espressif/esp-idf.git
 
     - name: Build
       run: |
