@@ -4,3 +4,6 @@
 [submodule "components/m5stack"]
 	path = components/m5stack
 	url = https://github.com/m5stack/m5stack.git
+[submodule "esp-idf"]
+	path = esp-idf
+	url = https://github.com/espressif/esp-idf.git
