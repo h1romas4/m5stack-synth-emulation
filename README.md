@@ -42,9 +42,9 @@ make
 make flash monitor
 ```
 
-## [Binary release](https://github.com/h1romas4/m5stack-synth-emulation/releases)
+## Binary release
 
-Extract release.tar.gz and Assign the binary to the following address:
+Extract [release.tar.gz](https://github.com/h1romas4/m5stack-synth-emulation/releases) and Assign the binary to the following address:
 
 |address|module|
 |-|-|
