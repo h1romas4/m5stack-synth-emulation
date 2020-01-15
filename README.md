@@ -44,6 +44,8 @@ make flash monitor
 
 ## [Binary release](https://github.com/h1romas4/m5stack-synth-emulation/releases)
 
+Extract release.tar.gz and Assign the binary to the following address:
+
 |address|module|
 |-|-|
 |`0x1000`|`build/bootloader/bootloader.bin`|
