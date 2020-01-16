@@ -22,7 +22,7 @@ gcc version 5.2.0 (crosstool-NG crosstool-ng-1.22.0-80-g6c4433a)
 
 ![](https://github.com/h1romas4/m5stack-synth-emulation/workflows/M5Stack%20CI/badge.svg)
 
-Compile
+**Compile**
 
 ```
 git clone --recursive https://github.com/h1romas4/m5stack-synth-emulation.git
@@ -32,19 +32,19 @@ export IDF_PATH=$(pwd)/esp-idf
 make
 ```
 
-Upload sample VGM file to M5Stack flash
+**Upload sample VGM file to M5Stack flash**
 
 ```
 ./flashrom.sh vgm/ym2612.vgm
 ```
 
-Play music
+**Play music**
 
 ```
 make flash monitor
 ```
 
-Create VGM file
+**Create VGM file**
 
 * [mml2vgm](https://github.com/kuma4649/mml2vgm) by [kumatan](https://github.com/kuma4649) san
 * [mucomMD2vgm](https://github.com/kuma4649/mucomMD2vgm) by [kumatan](https://github.com/kuma4649) san
