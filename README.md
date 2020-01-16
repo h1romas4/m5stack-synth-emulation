@@ -22,6 +22,8 @@ gcc version 5.2.0 (crosstool-NG crosstool-ng-1.22.0-80-g6c4433a)
 
 ![](https://github.com/h1romas4/m5stack-synth-emulation/workflows/M5Stack%20CI/badge.svg)
 
+### Compile
+
 ```
 git clone --recursive https://github.com/h1romas4/m5stack-synth-emulation.git
 cd m5stack-synth-emulation
@@ -30,17 +32,22 @@ export IDF_PATH=$(pwd)/esp-idf
 make
 ```
 
-## Upload .vgm file to M5Stack flash
+### Upload sample VGM file to M5Stack flash
 
 ```
 ./flashrom.sh vgm/ym2612.vgm
 ```
 
-## Play music
+### Play music
 
 ```
 make flash monitor
 ```
+
+### Create VGM file
+
+* [mml2vgm](https://github.com/kuma4649/mml2vgm) by [kumatan](https://github.com/kuma4649) san
+* [mucomMD2vgm](https://github.com/kuma4649/mucomMD2vgm) by [kumatan](https://github.com/kuma4649) san
 
 ## Binary release
 
@@ -52,7 +59,7 @@ Extract [release.tar.gz](https://github.com/h1romas4/m5stack-synth-emulation/rel
 |`0x8000`|`build/partitions.bin`|
 |`0xe000`|`build/ota_data_initial.bin`|
 |`0x10000`|`build/m5stack-synth-emulation.bin`|
-|`0x211000`|`vgm/ym2612.vgm`|
+|`0x211000`|`vgm/ym2612.vgm` or `vgm/sn76489.vgm`|
 
 ```
 python ${IDF_PATH}/components/esptool_py/esptool/esptool.py \
